@@ -5,6 +5,7 @@ capture = cv2.VideoCapture(0)
 
 # red = rgb(225, 81, 86)
 
+# In HSV
 lower_red = np.array([100, 50, 50])
 higher_red = np.array([240, 255, 255])
 
