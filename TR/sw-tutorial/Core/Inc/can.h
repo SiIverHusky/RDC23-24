@@ -116,10 +116,9 @@ MotorStats get_motor_feedback(Motor tar_motor);
  * @brief Clockwise if current if is positive, and vice versa. Max current is
  *16384.
  **/
-void set_motor_current(Motor tar_motor, int16_t tar_current);
+void set_motor_current(Motor tar_motor, int32_t tar_current);
 
-// TODO: implement this (Tips: see PID notes)
-void set_motor_speed(Motor tar_motor, int16_t tar_vel);
+void set_motor_speed(Motor tar_motor, int16_t tar_rpm, int8_t p_term, int8_t i_term, int8_t d_term);
 
 /* USER CODE END Prototypes */
 

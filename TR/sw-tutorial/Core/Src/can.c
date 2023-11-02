@@ -334,7 +334,7 @@ void can_ctrl_loop() {
 
 MotorStats get_motor_feedback(Motor tar_motor) { return rm_fb_cmd[tar_motor]; }
 
-void set_motor_current(Motor tar_motor, int16_t tar_current) {
+void set_motor_current(Motor tar_motor, int32_t tar_current) {
 	if (tar_current > 16384) {
 		tar_current = 16384;
 	} else if (tar_current < -16384) {
@@ -343,8 +343,16 @@ void set_motor_current(Motor tar_motor, int16_t tar_current) {
 	rm_ctrl_cmd[tar_motor] = tar_current;
 }
 
-void set_motor_speed(Motor tar_motor, int16_t tar_vel) {
-	// TODO: implement this (Tips: see PID notes)
+void set_motor_speed(Motor tar_motor, int16_t tar_rpm, int8_t p_term, int8_t i_term, int8_t d_term) {
+	// rpm to vel_rpm
+	// this number makes it so the target_rpm is roughly equal to the vel_rpm value of the motor
+	tar_rpm *= 20;
+
+	int16_t rpm_error = tar_rpm - get_motor_feedback(tar_motor).vel_rpm;
+
+	int32_t pid_value = p_term * rpm_error + i_term * rpm_error + d_term * rpm_error;
+
+	set_motor_current(tar_motor, pid_value);
 }
 
 /* USER CODE END 1 */
