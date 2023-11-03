@@ -25,19 +25,42 @@ if __name__ == "__main__":
     while True:
         ret, frame = capture.read()
 
+        frame = cv2.GaussianBlur(frame, (5, 5), 0)  # Remove noise w/ Gaussian
+        frame = cv2.medianBlur(frame, 5)            # Remove noise w/ Median
+
         # Converting to HSV
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
+        # Creating mask
+        r_mask = cv2.inRange(hsv, lower_red, higher_red)
+        b_mask = cv2.inRange(hsv, lower_blue, higher_blue)
+        g_mask = cv2.inRange(hsv, lower_green, higher_green)
+        p_mask = cv2.inRange(hsv, lower_purple, higher_purple)
+
         if color == "red":
-            mask = cv2.inRange(hsv, lower_red, higher_red)
+            mask = r_mask
         elif color == "blue":
-            mask = cv2.inRange(hsv, lower_blue, higher_blue)
+            mask = b_mask
         elif color == "green":
-            mask = cv2.inRange(hsv, lower_green, higher_green)
+            mask = g_mask
         elif color == "purple":
-            mask = cv2.inRange(hsv, lower_purple, higher_purple)
+            mask = p_mask
+        elif color == "test":
+            mask = cv2.bitwise_or(r_mask, b_mask)
+            mask = cv2.bitwise_or(mask, g_mask)
+
+        mask = cv2.erode(mask, (5,5), iterations=2)
 
         detected = cv2.bitwise_and(frame, frame, mask=mask)
+
+        contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+        for cnt in contours:
+            m = cv2.moments(cnt)
+            if m['m00'] > 100:
+                x, y, w, h = cv2.boundingRect(cnt)
+
+                cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 255, 0), 2)
 
         if show_detected:
             cv2.imshow('frame', detected)
@@ -58,7 +81,8 @@ if __name__ == "__main__":
             color = "green"
         elif key == ord('p'):
             color = "purple"
-
+        elif key == ord('t'):
+            color = "test"
 
     capture.release()
     cv2.destroyAllWindows()
