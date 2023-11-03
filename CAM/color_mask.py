@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-capture = cv2.VideoCapture(0)
+capture = cv2.VideoCapture(1)
 
 # red = rgb(225, 81, 86)
 
@@ -57,10 +57,10 @@ if __name__ == "__main__":
 
         for cnt in contours:
             m = cv2.moments(cnt)
-            if m['m00'] > 100:
+            if m['m00'] > 10000:
                 x, y, w, h = cv2.boundingRect(cnt)
 
-                cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 255, 0), 2)
+                cv2.rectangle(detected, (x, y), (x+w, y+h), (255, 255, 0), 2)
 
         if show_detected:
             cv2.imshow('frame', detected)
