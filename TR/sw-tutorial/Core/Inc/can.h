@@ -39,59 +39,59 @@ extern CAN_HandleTypeDef hcan2;
 /* USER CODE BEGIN Private defines */
 
 typedef enum {
-	CAN1_MOTOR0,
-	CAN1_MOTOR1,
-	CAN1_MOTOR2,
-	CAN1_MOTOR3,
-	CAN1_MOTOR4,
-	CAN1_MOTOR5,
-	CAN1_MOTOR6,
-	CAN1_MOTOR7,
-	CAN2_MOTOR0,
-	CAN2_MOTOR1,
-	CAN2_MOTOR2,
-	CAN2_MOTOR3,
-	CAN2_MOTOR4,
-	CAN2_MOTOR5,
-	CAN2_MOTOR6,
-	CAN2_MOTOR7,
-	MAX_NUM_OF_MOTORS
+    CAN1_MOTOR0,
+    CAN1_MOTOR1,
+    CAN1_MOTOR2,
+    CAN1_MOTOR3,
+    CAN1_MOTOR4,
+    CAN1_MOTOR5,
+    CAN1_MOTOR6,
+    CAN1_MOTOR7,
+    CAN2_MOTOR0,
+    CAN2_MOTOR1,
+    CAN2_MOTOR2,
+    CAN2_MOTOR3,
+    CAN2_MOTOR4,
+    CAN2_MOTOR5,
+    CAN2_MOTOR6,
+    CAN2_MOTOR7,
+    MAX_NUM_OF_MOTORS
 } Motor;
 
 typedef enum {
-	CAN_GROUP_ID = 0x200,
-	CAN_3508_M1_ID,
-	CAN_3508_M2_ID,
-	CAN_3508_M3_ID,
-	CAN_3508_M4_ID,
-	CAN_3508_M5_ID,
-	CAN_3508_M6_ID,
-	CAN_3508_M7_ID,
-	CAN_3508_M8_ID,
+    CAN_GROUP_ID = 0x200,
+    CAN_3508_M1_ID,
+    CAN_3508_M2_ID,
+    CAN_3508_M3_ID,
+    CAN_3508_M4_ID,
+    CAN_3508_M5_ID,
+    CAN_3508_M6_ID,
+    CAN_3508_M7_ID,
+    CAN_3508_M8_ID,
 } can_msg_id_e;
 
 typedef struct {
-	uint16_t encoder;
-	int16_t vel_rpm;
-	int16_t raw_current;
-	uint8_t temperature;
+    uint16_t encoder;
+    int16_t vel_rpm;
+    int16_t raw_current;
+    uint8_t temperature;
 } MotorFeedback;
 
 typedef struct {
-	uint16_t encoder;
-	int16_t vel_rpm;
-	float actual_current;
-	uint8_t temperature;
+    uint16_t encoder;
+    int16_t vel_rpm;
+    float actual_current;
+    uint8_t temperature;
 } MotorStats;
 
-#define MAX_CAN_RM		 8
-#define NUM_OF_CAN		 2
-#define RM_TX_GRP1_ID	 0x200
-#define RM_TX_GRP2_ID	 0x1FF
-#define MOTOR_SPEED_MAX	 16384
-#define CAN_DATA_SIZE	 8
+#define MAX_CAN_RM       8
+#define NUM_OF_CAN       2
+#define RM_TX_GRP1_ID    0x200
+#define RM_TX_GRP2_ID    0x1FF
+#define MOTOR_SPEED_MAX  16384
+#define CAN_DATA_SIZE    8
 #define CAN1_RX_ID_START 0x201
-#define MOTOR_ID		 2
+#define MOTOR_ID         2
 /* USER CODE END Private defines */
 void MX_CAN1_Init(void);
 void MX_CAN2_Init(void);
@@ -118,7 +118,9 @@ MotorStats get_motor_feedback(Motor tar_motor);
  **/
 void set_motor_current(Motor tar_motor, int32_t tar_current);
 
-void set_motor_speed(Motor tar_motor, int16_t tar_rpm, int8_t p_term, int8_t i_term, int8_t d_term);
+void set_motor_speed(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd);
+
+void test_pid(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd)
 
 /* USER CODE END Prototypes */
 
