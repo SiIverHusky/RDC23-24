@@ -61,6 +61,18 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+uint16_t stringlen(char *str) {
+    int count = 0;
+
+    while (*str != '\0') {
+        count++;
+        str++;
+    }
+
+    return count;
+}
+
+
 /* USER CODE END 0 */
 
 /**
@@ -113,10 +125,40 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     tft_force_clear();
+
+    double arr[5000];
+    int i = 0;
+    char temp[16];
+    int j = 0;
+
     while (1) {
         can_ctrl_loop();
 
         tft_update(100);
+
+        if (HAL_GetTick() <= 1000) {
+            test_pid(CAN1_MOTOR2, 0, 15, 0, 0);
+        } else if (HAL_GetTick() > 1000 && HAL_GetTick() <= 2000) {
+            test_pid(CAN1_MOTOR2, 500, 15, 0, 0);
+        } else if (HAL_GetTick() > 2000 && HAL_GetTick() <= 3000) {
+            test_pid(CAN1_MOTOR2, -500, 15, 0, 0);
+        } else if (HAL_GetTick() > 3000){
+            test_pid(CAN1_MOTOR2, 0, 15, 0, 0);
+        }
+
+        tft_prints(0, 5, "TIME: %d", HAL_GetTick());
+
+
+        if (i < 5000) {
+        	arr[i++] = get_motor_feedback(CAN1_MOTOR2).vel_rpm / 20.0;
+        }
+
+        if (i == 5000 && j < 5000) {
+            snprintf(temp, 16, "%f", arr[j++]);
+            temp[8] = '\n';
+            temp[9] = '\0';
+            HAL_UART_Transmit(&huart1, (uint8_t *)&temp, stringlen(temp), 1);
+        }
     }
 }
 
