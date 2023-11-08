@@ -13,7 +13,7 @@
 ../Core/Src/lcd.c:234:6:tft_set_highlight_color	0	static
 ../Core/Src/lcd.c:243:6:tft_set_text_color	0	static
 ../Core/Src/lcd.c:252:6:tft_set_special_color	0	static
-../Core/Src/lcd.c:276:6:tft_print_colored	64	static
+../Core/Src/lcd.c:276:6:tft_print_colored	72	static
 ../Core/Src/lcd.c:329:6:tft_printc	16	static
 ../Core/Src/lcd.c:341:6:tft_prints	72	static
 ../Core/Src/lcd.c:358:6:tft_printi	32	static
@@ -28,4 +28,4 @@
 ../Core/Src/lcd.c:536:9:tft_update	96	static
 ../Core/Src/lcd.c:259:6:tft_force_clear	16	static
 ../Core/Src/lcd.c:144:6:tft_init	56	static
-../Core/Src/lcd.c:588:9:tft_update2	80	static
+../Core/Src/lcd.c:588:9:tft_update2	72	static

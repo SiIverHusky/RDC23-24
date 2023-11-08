@@ -89,9 +89,9 @@
 ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c:7537:6:TIM_ETR_SetConfig	8	static
 ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c:5162:19:HAL_TIM_ConfigOCrefClear	16	static
 ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c:5292:19:HAL_TIM_ConfigClockSource	16	static
-../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c:7109:26:TIM_SlaveTimer_SetConfig.constprop	8	static
-../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c:5518:19:HAL_TIM_SlaveConfigSynchro_IT	16	static
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c:7109:26:TIM_SlaveTimer_SetConfig	16	static
 ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c:5478:19:HAL_TIM_SlaveConfigSynchro	16	static
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c:5518:19:HAL_TIM_SlaveConfigSynchro_IT	16	static
 ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c:7567:6:TIM_CCxChannelCmd	8	static
 ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c:787:19:HAL_TIM_OC_Start	8	static
 ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c:1450:19:HAL_TIM_PWM_Start	0	static

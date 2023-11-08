@@ -9,7 +9,7 @@
 ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c:368:19:HAL_TIMEx_HallSensor_Stop	8	static
 ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c:396:19:HAL_TIMEx_HallSensor_Start_IT	16	static
 ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c:453:19:HAL_TIMEx_HallSensor_Stop_IT	8	static
-../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c:486:19:HAL_TIMEx_HallSensor_Start_DMA	16	static
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c:486:19:HAL_TIMEx_HallSensor_Start_DMA	24	static
 ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c:562:19:HAL_TIMEx_HallSensor_Stop_DMA	8	static
 ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c:624:19:HAL_TIMEx_OCN_Start	8	static
 ../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c:675:19:HAL_TIMEx_OCN_Stop	16	static
