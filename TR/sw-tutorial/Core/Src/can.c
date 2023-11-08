@@ -21,6 +21,7 @@
 #include "can.h"
 
 #include "main.h"
+#include "lcd/lcd.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -343,19 +344,26 @@ void set_motor_current(Motor tar_motor, int32_t tar_current) {
     rm_ctrl_cmd[tar_motor] = tar_current;
 }
 
-void set_motor_speed(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd) {
+void set_motor_speed(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error) {
     // rpm to vel_rpm
     // this number makes it so the target_rpm is roughly equal to the vel_rpm value of the motor
     target_rpm *= 20;
 
     int16_t error = target_rpm - get_motor_feedback(tar_motor).vel_rpm;
 
-    int32_t pid_value = Kp * error + Ki * error + Kd * error;
+    int32_t proportional = Kp * error;
+
+    int32_t integral = Ki * error;
+
+    int32_t derivative = Kd * (error - *last_error);
+    *last_error = error;
+
+    int32_t pid_value = proportional + integral + derivative;
 
     set_motor_current(tar_motor, pid_value);
 }
 
-void test_pid(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd) {
+void test_pid(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error) {
     int16_t error = target_rpm * 20 - get_motor_feedback(tar_motor).vel_rpm;
     int32_t pid_value = Kp * error + Ki * error + Kd * error;
 
@@ -365,23 +373,6 @@ void test_pid(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16
     tft_prints(0, 3, "RPM DIFF: %0.3f", target_rpm - get_motor_feedback(tar_motor).vel_rpm / 20.0);
     tft_prints(0, 4, "PID VALUE: %d", pid_value);
 
-    set_motor_speed(tar_motor, target_rpm, Kp, Ki, Kd);
-}
-
-void new_pid(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error) {
-    target_rpm *= 20;
-
-    int16_t error = target_rpm - get_motor_feedback(tar_motor).vel_rpm;
-
-    int32_t proportional = Kp * error;
-
-    // int32_t integral = Ki * error * dt;
-
-    int32_t derivative = Kd * (error - *last_error);
-    *last_error = error;
-
-    int32_t pid_value = proportional + derivative;
-
-    set_motor_current(tar_motor, pid_value);
+    set_motor_speed(tar_motor, target_rpm, Kp, Ki, Kd, last_error);
 }
 /* USER CODE END 1 */

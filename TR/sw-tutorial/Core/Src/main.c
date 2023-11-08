@@ -131,19 +131,25 @@ int main(void) {
     char temp[16];
     int j = 0;
 
+    const int16_t Kp = 9;
+    const int16_t Ki = 0;
+    const int16_t Kd = 110;
+
+    int16_t last_error = 0;
+
     while (1) {
         can_ctrl_loop();
 
         tft_update(100);
 
         if (HAL_GetTick() <= 1000) {
-            test_pid(CAN1_MOTOR2, 0, 15, 0, 0);
+            test_pid(CAN1_MOTOR2, 0, Kp, Ki, Kd, &last_error);
         } else if (HAL_GetTick() > 1000 && HAL_GetTick() <= 2000) {
-            test_pid(CAN1_MOTOR2, 500, 15, 0, 0);
+            test_pid(CAN1_MOTOR2, 500, Kp, Ki, Kd, &last_error);
         } else if (HAL_GetTick() > 2000 && HAL_GetTick() <= 3000) {
-            test_pid(CAN1_MOTOR2, -500, 15, 0, 0);
+            test_pid(CAN1_MOTOR2, -500, Kp, Ki, Kd, &last_error);
         } else if (HAL_GetTick() > 3000){
-            test_pid(CAN1_MOTOR2, 0, 15, 0, 0);
+            test_pid(CAN1_MOTOR2, 0, Kp, Ki, Kd, &last_error);
         }
 
         tft_prints(0, 5, "TIME: %d", HAL_GetTick());
