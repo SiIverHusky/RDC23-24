@@ -118,11 +118,9 @@ MotorStats get_motor_feedback(Motor tar_motor);
  **/
 void set_motor_current(Motor tar_motor, int32_t tar_current);
 
-void set_motor_speed(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd);
+void set_motor_speed(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error);
 
-void test_pid(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd);
-
-void new_pid(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error);
+void test_pid(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error);
 
 /* USER CODE END Prototypes */
 
