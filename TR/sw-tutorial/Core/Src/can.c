@@ -356,15 +356,32 @@ void set_motor_speed(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki
 }
 
 void test_pid(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd) {
-    init16_t error = target_rpm * 20 - get_motor_feedback(tar_motor).vel_rpm;
+    int16_t error = target_rpm * 20 - get_motor_feedback(tar_motor).vel_rpm;
     int32_t pid_value = Kp * error + Ki * error + Kd * error;
 
     tft_prints(0, 0, "TARGET RPM: %d", target_rpm);
     tft_prints(0, 1, "MOTOR RPM: %0.3f", get_motor_feedback(tar_motor).vel_rpm / 20.0);
     tft_prints(0, 2, "MOTOR VEL: %d", get_motor_feedback(tar_motor).vel_rpm);
-    tft_prints(0, 3, "RPM DIFF: %0.3f", target_rpm - get_motor_feedback(tar_motor).vel_rom / 20.0);
+    tft_prints(0, 3, "RPM DIFF: %0.3f", target_rpm - get_motor_feedback(tar_motor).vel_rpm / 20.0);
     tft_prints(0, 4, "PID VALUE: %d", pid_value);
 
     set_motor_speed(tar_motor, target_rpm, Kp, Ki, Kd);
+}
+
+void new_pid(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error) {
+    target_rpm *= 20;
+
+    int16_t error = target_rpm - get_motor_feedback(tar_motor).vel_rpm;
+
+    int32_t proportional = Kp * error;
+
+    // int32_t integral = Ki * error * dt;
+
+    int32_t derivative = Kd * (error - *last_error);
+    *last_error = error;
+
+    int32_t pid_value = proportional + derivative;
+
+    set_motor_current(tar_motor, pid_value);
 }
 /* USER CODE END 1 */
