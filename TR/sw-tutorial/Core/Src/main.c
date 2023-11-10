@@ -133,7 +133,7 @@ int main(void) {
 
     const int16_t Kp = 9;
     const int16_t Ki = 0;
-    const int16_t Kd = 110;
+    const int16_t Kd = 50;
 
     int16_t last_error = 0;
 
