@@ -30,6 +30,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "lcd/lcd.h"
+#include "movement.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -104,7 +105,9 @@ int main(void) {
     MX_GPIO_Init();
     MX_CAN1_Init();
     MX_CAN2_Init();
+    MX_SPI1_Init();
     MX_USART1_UART_Init();
+    MX_I2C2_Init();
     MX_DMA_Init();
     MX_USART2_UART_Init();
     MX_TIM5_Init();
@@ -133,7 +136,7 @@ int main(void) {
 
     const int16_t Kp = 9;
     const int16_t Ki = 0;
-    const int16_t Kd = 110;
+    const int16_t Kd = 50;
 
     int16_t last_error = 0;
 
@@ -142,21 +145,21 @@ int main(void) {
 
         tft_update(100);
 
-        if (HAL_GetTick() <= 1000) {
+        // test pid
+        /*if (HAL_GetTick() <= 1000) {
             test_pid(CAN1_MOTOR2, 0, Kp, Ki, Kd, &last_error);
         } else if (HAL_GetTick() > 1000 && HAL_GetTick() <= 2000) {
             test_pid(CAN1_MOTOR2, 500, Kp, Ki, Kd, &last_error);
         } else if (HAL_GetTick() > 2000 && HAL_GetTick() <= 3000) {
             test_pid(CAN1_MOTOR2, -500, Kp, Ki, Kd, &last_error);
-        } else if (HAL_GetTick() > 3000){
+        } else if (HAL_GetTick() > 3000) {
             test_pid(CAN1_MOTOR2, 0, Kp, Ki, Kd, &last_error);
         }
 
         tft_prints(0, 5, "TIME: %d", HAL_GetTick());
 
-
         if (i < 5000) {
-        	arr[i++] = get_motor_feedback(CAN1_MOTOR2).vel_rpm / 20.0;
+            arr[i++] = get_motor_feedback(CAN1_MOTOR2).vel_rpm / 20.0;
         }
 
         if (i == 5000 && j < 5000) {
@@ -164,8 +167,9 @@ int main(void) {
             temp[8] = '\n';
             temp[9] = '\0';
             HAL_UART_Transmit(&huart1, (uint8_t *)&temp, stringlen(temp), 1);
-        }
+        }*/
     }
+    /* USER CODE END 3 */
 }
 
 /**

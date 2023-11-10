@@ -20,8 +20,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "can.h"
 
-#include "main.h"
 #include "lcd/lcd.h"
+#include "main.h"
 
 /* USER CODE BEGIN 0 */
 
