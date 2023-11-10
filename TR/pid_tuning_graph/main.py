@@ -13,6 +13,8 @@ def get_args():
 def main():
     port, target_rpm = get_args()
 
+    target_rpm = 481 if target_rpm > 481 else target_rpm
+
     data = []
     average_values = []
 
