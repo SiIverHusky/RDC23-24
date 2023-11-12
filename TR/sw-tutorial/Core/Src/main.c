@@ -144,7 +144,6 @@ int main(void) {
     //frontR CAN1_MOTOR1
     //back CAN1_MOOR0
 
-
     while (1) {
         can_ctrl_loop();
 
