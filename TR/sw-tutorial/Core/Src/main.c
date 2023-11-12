@@ -30,6 +30,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "lcd/lcd.h"
+#include "movement.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -135,28 +136,35 @@ int main(void) {
     const int16_t Ki = 0;
     const int16_t Kd = 50;
 
-    int16_t last_error = 0;
+    int16_t last_error_frontL = 0;
+    int16_t last_error_frontR = 0;
+    int16_t last_error_back = 0;
+
+    //frontL CAN1_MOTOR2
+    //frontR CAN1_MOTOR1
+    //back CAN1_MOOR0
 
     while (1) {
         can_ctrl_loop();
 
         tft_update(100);
 
+        //test pid
+        /*
         if (HAL_GetTick() <= 1000) {
-            test_pid(CAN1_MOTOR2, 0, Kp, Ki, Kd, &last_error);
+            test_pid(CAN1_MOTOR1, 0, Kp, Ki, Kd, &last_error);
         } else if (HAL_GetTick() > 1000 && HAL_GetTick() <= 2000) {
-            test_pid(CAN1_MOTOR2, 500, Kp, Ki, Kd, &last_error);
+            test_pid(CAN1_MOTOR1, 500, Kp, Ki, Kd, &last_error);
         } else if (HAL_GetTick() > 2000 && HAL_GetTick() <= 3000) {
-            test_pid(CAN1_MOTOR2, -500, Kp, Ki, Kd, &last_error);
-        } else if (HAL_GetTick() > 3000){
-            test_pid(CAN1_MOTOR2, 0, Kp, Ki, Kd, &last_error);
+            test_pid(CAN1_MOTOR1, -500, Kp, Ki, Kd, &last_error);
+        } else if (HAL_GetTick() > 3000) {
+            test_pid(CAN1_MOTOR1, 0, Kp, Ki, Kd, &last_error);
         }
 
         tft_prints(0, 5, "TIME: %d", HAL_GetTick());
 
-
         if (i < 5000) {
-        	arr[i++] = get_motor_feedback(CAN1_MOTOR2).vel_rpm / 20.0;
+            arr[i++] = get_motor_feedback(CAN1_MOTOR1).vel_rpm / 20.0;
         }
 
         if (i == 5000 && j < 5000) {
@@ -164,8 +172,21 @@ int main(void) {
             temp[8] = '\n';
             temp[9] = '\0';
             HAL_UART_Transmit(&huart1, (uint8_t *)&temp, stringlen(temp), 1);
+        }*/
+
+        move(CAN1_MOTOR2, CAN1_MOTOR1, CAN1_MOTOR0, 0.0, 0.0, 0.1, &last_error_frontL, &last_error_frontR, &last_error_back);
+
+        //test_pid(CAN1_MOTOR2, 50, Kp, Ki, Kd, &last_error_frontL, 0);
+        //test_pid(CAN1_MOTOR1, 50, Kp, Ki, Kd, &last_error_frontR, 1);
+        //test_pid(CAN1_MOTOR0, 50, Kp, Ki, Kd, &last_error_back, 2);
+
+		//tft_prints(0, 4, "%d", HAL_GetTick());
+
+        if (HAL_GetTick() % 250 == 0) {
+        	led_toggle(LED1);
         }
     }
+    /* USER CODE END 3 */
 }
 
 /**
