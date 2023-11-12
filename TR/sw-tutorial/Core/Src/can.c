@@ -355,7 +355,7 @@ void set_motor_speed(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki
 
     int32_t integral = Ki * error;
 
-    int32_t derivative = Kd * (error - *last_error);
+    int32_t derivative = Kd * (error - (*last_error));
     *last_error = error;
 
     int32_t pid_value = proportional + integral + derivative;
@@ -365,7 +365,7 @@ void set_motor_speed(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki
 
 void test_pid(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error) {
     int16_t error = target_rpm * 20 - get_motor_feedback(tar_motor).vel_rpm;
-    int32_t pid_value = Kp * error + Ki * error + Kd * error;
+    int32_t pid_value = Kp * error + Ki * error + Kd * (error-*last_error);
 
     tft_prints(0, 0, "TARGET RPM: %d", target_rpm);
     tft_prints(0, 1, "MOTOR RPM: %0.3f", get_motor_feedback(tar_motor).vel_rpm / 20.0);
