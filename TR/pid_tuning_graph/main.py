@@ -42,6 +42,8 @@ def main():
 
     plt.plot(np.array(data))
 
+    plt.savefig("abcd.png")
+
     plt.show()
 
 if __name__ == "__main__":
