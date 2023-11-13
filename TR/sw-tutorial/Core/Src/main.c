@@ -26,7 +26,7 @@
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
-
+#include "stdint.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "lcd/lcd.h"
@@ -70,6 +70,28 @@ uint16_t stringlen(char *str) {
     }
 
     return count;
+}
+
+void bluetoothreceive(void){
+uint8_t rx_buff[10];
+uint8_t tx_buff[1];
+uint16_t timeout = 0xA;
+HAL_UART_Receive(&huart1, rx_buff, sizeof(rx_buff), timeout);
+if (rx_buff[0]=='0'){
+    gpio_reset(LED1);
+}
+
+tft_prints(2,7,"%d",rx_buff[1]);
+tft_prints(2,8,"%d",rx_buff[2]);
+tft_prints(2,9,"%d",rx_buff[3]);
+tft_prints(2,10,"%d",rx_buff[4]);
+tft_prints(6,7,"%d",rx_buff[5]);
+tft_prints(6,8,"%d",rx_buff[6]);
+tft_prints(6,9,"%d",rx_buff[7]);
+tft_prints(6,10,"%d",rx_buff[8]);
+tft_prints(9,7,"%d",rx_buff[9]);
+tft_prints(9,10,"%d",rx_buff[10]);
+tft_prints(12,10,"%d",rx_buff[0]);
 }
 
 
@@ -138,6 +160,7 @@ int main(void) {
     int16_t last_error = 0;
 
     while (1) {
+        bluetoothreceive();
         can_ctrl_loop();
 
         tft_update(100);
@@ -160,10 +183,10 @@ int main(void) {
         }
 
         if (i == 5000 && j < 5000) {
-            snprintf(temp, 16, "%f", arr[j++]);
+//            snprintf(temp, 16, "%f", arr[j++]);
             temp[8] = '\n';
             temp[9] = '\0';
-            HAL_UART_Transmit(&huart1, (uint8_t *)&temp, stringlen(temp), 1);
+//            HAL_UART_Transmit(&huart1, (uint8_t *)&temp, stringlen(temp), 1);
         }
     }
 }

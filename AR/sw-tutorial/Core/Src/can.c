@@ -21,7 +21,7 @@
 #include "can.h"
 
 #include "main.h"
-
+#include "stdint.h"
 
 /* USER CODE BEGIN 0 */
 
