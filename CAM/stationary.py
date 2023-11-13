@@ -1,33 +1,36 @@
 import cv2
 import numpy as np
 import os
+import time
 
 # Define the color boundaries in HSV
-lower_red = np.array([0,30,30])
-higher_red = np.array([25, 255, 255])
+lower_red = np.array([0,100,100])
+higher_red = np.array([13, 255, 255])   
 
-lower_blue = np.array([90,30,30])
-higher_blue = np.array([150, 255, 255])
+lower_blue = np.array([80,100,100])
+higher_blue = np.array([110, 255, 255])
 
-lower_green = np.array([35,30,30])
-higher_green = np.array([90, 255, 255])
+lower_green = np.array([40,100,100])
+higher_green = np.array([75, 255, 255])
 
 
 # Flags
-red_flag = True
+red_flag = False
 test_flag = True
 mask_flag = False
 
 # Capture Sources
-cam = cv2.VideoCapture(0)
+cam = cv2.VideoCapture(1)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-dft = cv2.imread("smboxes.jpg")
-dif = cv2.imread("different.jpg")
+dft = cv2.imread("bluegreen.jpg")
+dif = cv2.imread("redgreen.jpg")
 ali = cv2.imread("notaligned.jpg")
 tlt = cv2.imread("tilted.jpg")
 
 img = dft
 
+
+last_time = time.time()
 
 # Functions
 def searchGreen(frame):
@@ -37,6 +40,7 @@ def searchGreen(frame):
     if green_contours:
         max_contour = max(green_contours, key=cv2.contourArea)
         x, y, w, h = cv2.boundingRect(max_contour)
+        print(f'Found green at {x}, {y} with width {w} and height {h}')
         return x, y, w, h
     else:
         return None, None, None, None
@@ -50,7 +54,7 @@ def searchBoxes(cnt, templateBox, mask):
             boxes = []
             for cnt in contours:
                 x, y, w, h = cv2.boundingRect(cnt)
-                if 0.8 * tw * th < w * h < 1.2 * tw * th:
+                if 0.75 * tw * th < w * h < 1.25 * tw * th:
                     print(f'Found box at {x}, {y} with width {w} and height {h}')
                     boxes.append((x, y, w, h))
             return boxes
@@ -67,8 +71,8 @@ def classifyBoxes(frame, boxes, cmask, gmask):
         x, y, w, h = box
 
         # Check if box is seen on cmask or gmask within the inner 40 pixels
-        cmask_seen = np.any(cmask[y+20:y+h-20, x+20:x+w-20])
-        gmask_seen = np.any(gmask[y+20:y+h-20, x+20:x+w-20])
+        cmask_seen = np.any(cmask[int(y+(h*0.3)):int(y+h-(h*0.3)), int(x+(w*0.3)):int(x+w-(w*0.3))])
+        gmask_seen = np.any(gmask[int(y+(h*0.3)):int(y+h-(h*0.3)), int(x+(w*0.3)):int(x+w-(w*0.3))])
 
         # Assign 1 if seen on cmask, 0 if seen on gmask
         if cmask_seen:
@@ -91,7 +95,10 @@ if __name__ == "__main__":
             break
 
         frame = cv2.GaussianBlur(frame, (5, 5), 0)  # Remove noise w/ Gaussian
-        frame = cv2.medianBlur(frame, 5)            # Remove noise w/ Median
+        frame = cv2.medianBlur(frame, 9)            # Remove noise w/ Median
+        frame = cv2.GaussianBlur(frame, (5, 5), 0)  # Remove noise w/ Gaussian
+        frame = cv2.medianBlur(frame, 9)            # Remove noise w/ Median
+
 
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
@@ -103,34 +110,43 @@ if __name__ == "__main__":
 
         gmask = cv2.inRange(hsv, lower_green, higher_green)
         mask = cv2.bitwise_or(cmask, gmask)
-        mask = cv2.erode(mask, (5,5), iterations=7)
+        mask = cv2.erode(mask, (5,5), iterations=10)
 
         detected = cv2.bitwise_and(frame, frame, mask=mask)
         gframe = cv2.bitwise_and(frame, frame, mask=gmask)
         
-        template = searchGreen(gframe)
-#
-        if template is not None:
-            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            for cnt in contours:
-                foundBox = searchBoxes(cnt, template, mask)
-                foundBox = [[boxes[0], boxes[1], boxes[2], boxes[3]] for boxes in foundBox]
-                print(f'Search boxes returned {foundBox}')
-                if foundBox is not None:
-                    boxes = foundBox
-                    print(f'Found {len(boxes)} boxes')
-                    print(boxes)
-                    boxes = [box for box in boxes if box is not None]
-                    print(f'Found {len(boxes)} boxes not none')
-                    print(boxes)
-                    boxes = classifyBoxes(frame, boxes, cmask, gmask)
+        if time.time() - last_time >= 5:
+            last_time = time.time()
+            template = searchGreen(gframe)
+    #
+            if template is not None:
+                contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                for cnt in contours:
+                    dx, dy, dw, dh = cv2.boundingRect(cnt)
+                    cv2.rectangle(detected, (dx, dy), (dx+dw, dy+dh), (255, 255, 255), 2)
+                    foundBox = searchBoxes(cnt, template, mask)
+                    if foundBox is None:
+                        continue
+                    print(f'Search boxes raw returned {foundBox}')
+                    foundBox = [[boxes[0], boxes[1], boxes[2], boxes[3]] for boxes in foundBox if len(boxes) >= 4]
+                    print(f'Search boxes returned {foundBox}')
+                    if foundBox is not None:
+                        boxes = foundBox
+                        print(f'Found {len(boxes)} boxes')
+                        print(boxes)
+                        boxes = [box for box in boxes if box is not None]
+                        print(f'Found {len(boxes)} boxes not none')
+                        print(boxes)
+                        boxes = classifyBoxes(frame, boxes, cmask, gmask)
+                        print(f'Found {len(boxes)} boxes classified')
 
-            for box in boxes:
-                x, y, w, h, color = box
-                if color == 1:
-                    cv2.putText(detected, "1", (x + w//2, y + h//2), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                elif color == 0:
-                    cv2.putText(detected, "0", (x + w//2, y + h//2), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        for box in boxes:
+            print(f'Box: {box}')
+            x, y, w, h, color = box
+            if color == 1:
+                cv2.putText(detected, "1", (x + w//2, y + h//2), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+            elif color == 0:
+                cv2.putText(detected, "0", (x + w//2, y + h//2), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
         
         if mask_flag:
@@ -138,23 +154,25 @@ if __name__ == "__main__":
         else:
             cv2.imshow("frame", frame)
 
-        if cv2.waitKey(150) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-        if cv2.waitKey(150) & 0xFF == ord('m'):
+        if cv2.waitKey(1) & 0xFF == ord('m'):
             mask_flag = not mask_flag
-        if cv2.waitKey(150) & 0xFF == ord('r'):
-            red_flag = True
-        if cv2.waitKey(150) & 0xFF == ord('b'):
-            red_flag = False
-        if cv2.waitKey(150) & 0xFF == ord('t'):
+        if cv2.waitKey(1) & 0xFF == ord('t'):
             test_flag = not test_flag
-        if cv2.waitKey(150) & 0xFF == ord('0'):
+        if cv2.waitKey(1) & 0xFF == ord('r'):
+            red_flag = True
+        if cv2.waitKey(1) & 0xFF == ord('b'):
+            red_flag = False
+        if cv2.waitKey(1) & 0xFF == ord('t'):
+            test_flag = not test_flag
+        if cv2.waitKey(1) & 0xFF == ord('0'):
             img = dft
-        if cv2.waitKey(150) & 0xFF == ord('1'):
+        if cv2.waitKey(1) & 0xFF == ord('1'):
             img = dif
-        if cv2.waitKey(150) & 0xFF == ord('2'):
+        if cv2.waitKey(1) & 0xFF == ord('2'):
             img = ali
-        if cv2.waitKey(150) & 0xFF == ord('3'):
+        if cv2.waitKey(1) & 0xFF == ord('3'):
             img = tlt
     
     cam.release()
