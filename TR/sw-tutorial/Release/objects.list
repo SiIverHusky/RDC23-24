@@ -1,3 +1,4 @@
+"./Core/Src/bluetooth.o"
 "./Core/Src/can.o"
 "./Core/Src/dma.o"
 "./Core/Src/gpio.o"
@@ -5,6 +6,7 @@
 "./Core/Src/lcd.o"
 "./Core/Src/lcd_graphics.o"
 "./Core/Src/main.o"
+"./Core/Src/movement.o"
 "./Core/Src/spi.o"
 "./Core/Src/stm32f4xx_hal_msp.o"
 "./Core/Src/stm32f4xx_it.o"

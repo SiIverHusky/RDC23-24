@@ -1,5 +1,4 @@
-../Core/Src/main.c:64:10:stringlen	0	static
-../Core/Src/main.c:75:6:bluetoothreceive	24	static
-../Core/Src/main.c:198:6:SystemClock_Config	88	static,ignoring_inline_asm
-../Core/Src/main.c:104:5:main	48	static
-../Core/Src/main.c:243:6:Error_Handler	0	static,ignoring_inline_asm
+../Core/Src/main.c:66:10:stringlen	0	static
+../Core/Src/main.c:195:6:SystemClock_Config	88	static,ignoring_inline_asm
+../Core/Src/main.c:83:5:main	48	static
+../Core/Src/main.c:240:6:Error_Handler	0	static,ignoring_inline_asm
