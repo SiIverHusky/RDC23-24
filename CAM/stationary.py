@@ -4,7 +4,7 @@ import os
 import time
 
 # Define the color boundaries in HSV
-lower_red = np.array([0,100,100])
+lower_red = np.array([0,120,120])
 higher_red = np.array([13, 255, 255])   
 
 lower_blue = np.array([80,100,100])
@@ -15,15 +15,15 @@ higher_green = np.array([75, 255, 255])
 
 
 # Flags
-red_flag = False
-test_flag = True
-mask_flag = False
+red_flag = True
+img_flag = True
+mask_flag = True
 
 # Capture Sources
-cam = cv2.VideoCapture(1)
+cam = cv2.VideoCapture(0)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-dft = cv2.imread("bluegreen.jpg")
-dif = cv2.imread("redgreen.jpg")
+dft = cv2.imread("redgreen.jpg")
+dif = cv2.imread("bluegreen.jpg")
 ali = cv2.imread("notaligned.jpg")
 tlt = cv2.imread("tilted.jpg")
 
@@ -40,10 +40,36 @@ def searchGreen(frame):
     if green_contours:
         max_contour = max(green_contours, key=cv2.contourArea)
         x, y, w, h = cv2.boundingRect(max_contour)
+        if w > h:
+            print('Two Green Boxes are next to each other...')
+            return x, y, w//2, h
         print(f'Found green at {x}, {y} with width {w} and height {h}')
         return x, y, w, h
     else:
         return None, None, None, None
+
+def splitBoxes(boxes):
+    print("Splitting boxes...")
+    new_boxes = []
+    for box in boxes:
+        x, y, w, h = box
+        if w > h:
+            print('Two Boxes are next to each other...')
+            new_boxes.append((x, y, w//2, h))
+            new_boxes.append((x + w//2, y, w//2, h))
+        else:
+            print(f'Found box at {x}, {y} with width {w} and height {h}')
+            new_boxes.append((x, y, w, h))
+    return new_boxes
+
+def destroyNonBoxes(mask, boxes):
+    new_mask = np.zeros_like(mask)
+    for box in boxes:
+        if box is not None:
+            x, y, w, h, _ = box
+            np.copyto(new_mask[y:y+h, x:x+w], mask[y:y+h, x:x+w])
+    return new_mask
+    
 
 def searchBoxes(cnt, templateBox, mask):
     print("Searching for boxes...")
@@ -85,7 +111,7 @@ def classifyBoxes(frame, boxes, cmask, gmask):
 if __name__ == "__main__":
     boxes = []
     while True:
-        if test_flag:
+        if img_flag:
             frame = img
             ret = True
         else:
@@ -115,8 +141,7 @@ if __name__ == "__main__":
         detected = cv2.bitwise_and(frame, frame, mask=mask)
         gframe = cv2.bitwise_and(frame, frame, mask=gmask)
         
-        if time.time() - last_time >= 5:
-            last_time = time.time()
+        if time.time() - last_time >= 2:
             template = searchGreen(gframe)
     #
             if template is not None:
@@ -131,7 +156,7 @@ if __name__ == "__main__":
                     foundBox = [[boxes[0], boxes[1], boxes[2], boxes[3]] for boxes in foundBox if len(boxes) >= 4]
                     print(f'Search boxes returned {foundBox}')
                     if foundBox is not None:
-                        boxes = foundBox
+                        boxes = splitBoxes(foundBox)
                         print(f'Found {len(boxes)} boxes')
                         print(boxes)
                         boxes = [box for box in boxes if box is not None]
@@ -140,8 +165,15 @@ if __name__ == "__main__":
                         boxes = classifyBoxes(frame, boxes, cmask, gmask)
                         print(f'Found {len(boxes)} boxes classified')
 
+            if len(boxes) > 0:
+                box_mask = destroyNonBoxes(mask, boxes)
+            
+            last_time = time.time()
+
+        if len(boxes) > 0:     
+            detected = cv2.bitwise_and(frame, frame, mask=box_mask)
+
         for box in boxes:
-            print(f'Box: {box}')
             x, y, w, h, color = box
             if color == 1:
                 cv2.putText(detected, "1", (x + w//2, y + h//2), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
