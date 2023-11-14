@@ -13,8 +13,6 @@ def get_args():
 def main():
     port, target_rpm = get_args()
 
-    target_rpm = 481 if target_rpm > 481 else target_rpm
-
     data = []
     average_values = []
 
@@ -41,8 +39,6 @@ def main():
     print(F"Average: {sum(average_values)/len(average_values)}")
 
     plt.plot(np.array(data))
-
-    plt.savefig("abcd.png")
 
     plt.show()
 
