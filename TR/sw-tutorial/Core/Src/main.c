@@ -73,7 +73,6 @@ uint16_t stringlen(char *str) {
     return count;
 }
 
-
 /* USER CODE END 0 */
 
 /**
@@ -140,18 +139,19 @@ int main(void) {
     int16_t last_error_frontR = 0;
     int16_t last_error_back = 0;
 
-    //frontL CAN1_MOTOR2
-    //frontR CAN1_MOTOR1
-    //back CAN1_MOOR0
+    // frontL CAN1_MOTOR2
+    // frontR CAN1_MOTOR1
+    // back CAN1_MOTOR0
+
+    char moveVal = 's';
 
     while (1) {
         can_ctrl_loop();
 
         tft_update(100);
 
-        //test pid
-        /*
-        if (HAL_GetTick() <= 1000) {
+        // test pid
+        /*if (HAL_GetTick() <= 1000) {
             test_pid(CAN1_MOTOR1, 0, Kp, Ki, Kd, &last_error);
         } else if (HAL_GetTick() > 1000 && HAL_GetTick() <= 2000) {
             test_pid(CAN1_MOTOR1, 500, Kp, Ki, Kd, &last_error);
@@ -174,19 +174,14 @@ int main(void) {
             HAL_UART_Transmit(&huart1, (uint8_t *)&temp, stringlen(temp), 1);
         }*/
 
-        move(CAN1_MOTOR2, CAN1_MOTOR1, CAN1_MOTOR0, 0.0, 0.0, 0.1, &last_error_frontL, &last_error_frontR, &last_error_back);
+        HAL_UART_Receive(&huart1, (uint8_t *)&moveVal, sizeof(moveVal), 100);
 
-        //test_pid(CAN1_MOTOR2, 50, Kp, Ki, Kd, &last_error_frontL, 0);
-        //test_pid(CAN1_MOTOR1, 50, Kp, Ki, Kd, &last_error_frontR, 1);
-        //test_pid(CAN1_MOTOR0, 50, Kp, Ki, Kd, &last_error_back, 2);
+        test_movement(CAN1_MOTOR2, CAN1_MOTOR1, CAN1_MOTOR0, moveVal, &last_error_frontL, &last_error_frontR, &last_error_back);
 
-		//tft_prints(0, 4, "%d", HAL_GetTick());
-
-        if (HAL_GetTick() % 250 == 0) {
-        	led_toggle(LED1);
+        if (HAL_GetTick() % 500 == 0) {
+            led_toggle(LED1);
         }
     }
-    /* USER CODE END 3 */
 }
 
 /**

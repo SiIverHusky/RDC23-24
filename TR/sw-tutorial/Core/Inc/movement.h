@@ -10,7 +10,7 @@ extern "C" {
 #include "main.h"
 #include "math.h"
 
-void test_movement(Motor frontL_motor, Motor frontR_motor, Motor back_motor, uint8_t move, int16_t *last_error_frontL, int16_t *last_error_frontR, int16_t *last_error_back);
+void test_movement(Motor frontL_motor, Motor frontR_motor, Motor back_motor, char move_value, int16_t *last_error_frontL, int16_t *last_error_frontR, int16_t *last_error_back);
 
 void move(Motor frontL_motor, Motor frontR_motor, Motor back_motor, double x, double y, double direction,
           int16_t *last_error_frontL, int16_t *last_error_frontR, int16_t *last_error_back);
