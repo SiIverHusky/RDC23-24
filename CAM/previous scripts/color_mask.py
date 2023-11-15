@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-capture = cv2.VideoCapture(1)
+capture = cv2.VideoCapture(0)
 
 # red = rgb(225, 81, 86)
 
@@ -9,7 +9,7 @@ capture = cv2.VideoCapture(1)
 lower_red = np.array([0, 100, 20])
 higher_red = np.array([25, 255, 255])
 
-lower_blue = np.array([90, 50, 50])
+lower_blue = np.array([90, 50, 50])9
 higher_blue = np.array([150, 255, 255])
 
 lower_green = np.array([40, 50, 50])

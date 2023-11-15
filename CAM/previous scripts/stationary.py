@@ -4,25 +4,28 @@ import os
 import time
 
 # Define the color boundaries in HSV
-lower_red = np.array([0,120,120])
-higher_red = np.array([13, 255, 255])   
+lower_red_0 = np.array([0,120,120])
+higher_red_0 = np.array([13, 255, 255])   
+
+lower_red_180 = np.array([170,120,120])
+higher_red_180 = np.array([180, 255, 255])
 
 lower_blue = np.array([80,100,100])
 higher_blue = np.array([110, 255, 255])
 
-lower_green = np.array([40,100,100])
+lower_green = np.array([40,60,60])
 higher_green = np.array([75, 255, 255])
 
 
 # Flags
 red_flag = True
-img_flag = True
+img_flag = False
 mask_flag = True
 
 # Capture Sources
-cam = cv2.VideoCapture(0)
+cam = cv2.VideoCapture(1)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-dft = cv2.imread("redgreen.jpg")
+dft = cv2.imread("usb.jpg")
 dif = cv2.imread("bluegreen.jpg")
 ali = cv2.imread("notaligned.jpg")
 tlt = cv2.imread("tilted.jpg")
@@ -31,17 +34,21 @@ img = dft
 
 
 last_time = time.time()
+process_time = time.time()
 
 # Functions
 def searchGreen(frame):
     print("Searching for green...")
     green_mask = cv2.inRange(frame, lower_green, higher_green)
+    kernel = np.ones((5,5), np.uint8)
+    green_mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
     green_contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if green_contours:
         max_contour = max(green_contours, key=cv2.contourArea)
         x, y, w, h = cv2.boundingRect(max_contour)
         if w > h:
             print('Two Green Boxes are next to each other...')
+            print(f'Found green at {x}, {y} with width {w//2} and height {h}')
             return x, y, w//2, h
         print(f'Found green at {x}, {y} with width {w} and height {h}')
         return x, y, w, h
@@ -83,6 +90,7 @@ def searchBoxes(cnt, templateBox, mask):
                 if 0.75 * tw * th < w * h < 1.25 * tw * th:
                     print(f'Found box at {x}, {y} with width {w} and height {h}')
                     boxes.append((x, y, w, h))
+            boxes = splitBoxes(boxes)
             return boxes
     return None
 
@@ -120,8 +128,9 @@ if __name__ == "__main__":
         if not ret:
             break
 
-        frame = cv2.GaussianBlur(frame, (5, 5), 0)  # Remove noise w/ Gaussian
-        frame = cv2.medianBlur(frame, 9)            # Remove noise w/ Median
+        if time.time() - process_time >= 3:
+            process_frame = frame
+
         frame = cv2.GaussianBlur(frame, (5, 5), 0)  # Remove noise w/ Gaussian
         frame = cv2.medianBlur(frame, 9)            # Remove noise w/ Median
 
@@ -130,13 +139,16 @@ if __name__ == "__main__":
 
 
         if red_flag:
-            cmask = cv2.inRange(hsv, lower_red, higher_red)
+            lmask = cv2.inRange(hsv, lower_red_0, higher_red_0)
+            umask = cv2.inRange(hsv, lower_red_180, higher_red_180)
+            cmask = cv2.bitwise_or(lmask, umask)
         else:
             cmask = cv2.inRange(hsv, lower_blue, higher_blue)
 
         gmask = cv2.inRange(hsv, lower_green, higher_green)
         mask = cv2.bitwise_or(cmask, gmask)
-        mask = cv2.erode(mask, (5,5), iterations=10)
+        kernel = np.ones((5,5), np.uint8)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
 
         detected = cv2.bitwise_and(frame, frame, mask=mask)
         gframe = cv2.bitwise_and(frame, frame, mask=gmask)
@@ -156,7 +168,7 @@ if __name__ == "__main__":
                     foundBox = [[boxes[0], boxes[1], boxes[2], boxes[3]] for boxes in foundBox if len(boxes) >= 4]
                     print(f'Search boxes returned {foundBox}')
                     if foundBox is not None:
-                        boxes = splitBoxes(foundBox)
+                        boxes = foundBox
                         print(f'Found {len(boxes)} boxes')
                         print(boxes)
                         boxes = [box for box in boxes if box is not None]
