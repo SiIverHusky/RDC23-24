@@ -126,10 +126,10 @@ int main(void) {
     /* USER CODE BEGIN WHILE */
     tft_force_clear();
 
-    double arr[5000];
-    int i = 0;
-    char temp[16];
-    int j = 0;
+    // double arr[5000];
+    // int i = 0;
+    // char temp[16];
+    // int j = 0;
 
     const int16_t Kp = 9;
     const int16_t Ki = 0;
@@ -143,28 +143,84 @@ int main(void) {
     // frontR CAN1_MOTOR1
     // back CAN1_MOTOR0
 
-    char moveVal = 's';
+    static char moveVal[22] = "sx+000Xy+000Yr+000Rb0B";
+    char storer[5];
+    static int8_t x, y, r, b = 0;
 
     while (1) {
         can_ctrl_loop();
 
         tft_update(100);
 
+        HAL_UART_Receive(&huart1, (uint8_t *)&moveVal, sizeof(moveVal), 1);
+        tft_prints(0, 1, "%s", moveVal);
+    
+        for (int i = 0; i < stringlen(moveVal); i++) {
+            if (moveVal[i] == 'x') {
+                if (i + 4 <= 21) {
+                    storer[0] = moveVal[i + 1];
+                    storer[1] = moveVal[i + 2];
+                    storer[2] = moveVal[i + 3];
+                    storer[3] = moveVal[i + 4];
+                    storer[4] = '\0';
+                    if (abs(atoi(storer)) <= 100) {
+                        x = atoi(storer);
+                    }
+                }
+            } else if (moveVal[i] == 'y') {
+                if (i + 4 <= 21) {
+                    storer[0] = moveVal[i + 1];
+                    storer[1] = moveVal[i + 2];
+                    storer[2] = moveVal[i + 3];
+                    storer[3] = moveVal[i + 4];
+                    storer[4] = '\0';
+                    if (abs(atoi(storer)) <= 100) {
+                        y = atoi(storer);
+                    }
+                }
+            } else if (moveVal[i] == 'r') {
+                if (i + 4 <= 21) {
+                    storer[0] = moveVal[i + 1];
+                    storer[1] = moveVal[i + 2];
+                    storer[2] = moveVal[i + 3];
+                    storer[3] = moveVal[i + 4];
+                    storer[4] = '\0';
+                    if (abs(atoi(storer)) <= 100) {
+                        r = atoi(storer);
+                    }
+                }
+            } else if (moveVal[i] == 'b') {
+                if (i + 1 <= 21) {
+                    storer[0] = moveVal[i + 1];
+                    storer[1] = '\0';
+                    if (atoi(storer) >= 0 && atoi(storer) <= 2) {
+                        b = atoi(storer);
+                    }
+                }
+            }
+        }
+
+        tft_prints(0, 2, "x: %d", x);
+        tft_prints(0, 3, "y: %d", y);
+        tft_prints(0, 4, "r: %d", r);
+        tft_prints(0, 5, "b: %d", b);
+
         // test pid
-        /*if (HAL_GetTick() <= 1000) {
-            test_pid(CAN1_MOTOR1, 0, Kp, Ki, Kd, &last_error);
+        /*
+        if (HAL_GetTick() <= 1000) {
+            test_pid(CAN1_MOTOR2, 0, Kp, Ki, Kd, &last_error_frontL);
         } else if (HAL_GetTick() > 1000 && HAL_GetTick() <= 2000) {
-            test_pid(CAN1_MOTOR1, 500, Kp, Ki, Kd, &last_error);
+            test_pid(CAN1_MOTOR2, 0, Kp, Ki, Kd, &last_error_frontL);
         } else if (HAL_GetTick() > 2000 && HAL_GetTick() <= 3000) {
-            test_pid(CAN1_MOTOR1, -500, Kp, Ki, Kd, &last_error);
+            test_pid(CAN1_MOTOR2, -100, Kp, Ki, Kd, &last_error_frontL);
         } else if (HAL_GetTick() > 3000) {
-            test_pid(CAN1_MOTOR1, 0, Kp, Ki, Kd, &last_error);
+            test_pid(CAN1_MOTOR2, 0, Kp, Ki, Kd, &last_error_frontL);
         }
 
         tft_prints(0, 5, "TIME: %d", HAL_GetTick());
 
         if (i < 5000) {
-            arr[i++] = get_motor_feedback(CAN1_MOTOR1).vel_rpm / 20.0;
+            arr[i++] = get_motor_feedback(CAN1_MOTOR2).vel_rpm / 20.0;
         }
 
         if (i == 5000 && j < 5000) {
@@ -174,13 +230,18 @@ int main(void) {
             HAL_UART_Transmit(&huart1, (uint8_t *)&temp, stringlen(temp), 1);
         }*/
 
-        HAL_UART_Receive(&huart1, (uint8_t *)&moveVal, sizeof(moveVal), 100);
+        /// HAL_UART_Receive(&huart1, (uint8_t *)&moveVal, sizeof(moveVal), 1);
 
-        test_movement(CAN1_MOTOR2, CAN1_MOTOR1, CAN1_MOTOR0, moveVal, &last_error_frontL, &last_error_frontR, &last_error_back);
+        // test_movement(CAN1_MOTOR2, CAN1_MOTOR1, CAN1_MOTOR0, 'w', &last_error_frontL, &last_error_frontR,
+        // &last_error_back);
 
-        if (HAL_GetTick() % 500 == 0) {
+        if (HAL_GetTick() == 0 && last_ticks != 0) {
+            last_ticks = last_ticks % 1000;
+        } else if (HAL_GetTick() - last_ticks >= 1000) {
             led_toggle(LED1);
+            last_ticks = HAL_GetTick();
         }
+        tft_prints(0, 0, "%d", HAL_GetTick());
     }
 }
 
