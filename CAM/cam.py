@@ -3,6 +3,11 @@ import cv2
 import numpy as np
 import os
 import time
+import serial
+
+# Constants
+com = 'COM7'
+track = 5
 
 # Define the color boundaries in HSV
 lower_red_0 = np.array([0,120,120])
@@ -19,13 +24,13 @@ higher_green = np.array([75, 255, 255])
 
 # Flags
 red_flag = True
-img_flag = False
+img_flag = True
 mask_flag = True
 
 # Capture Sources
 cam = cv2.VideoCapture(1)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-dft = cv2.imread("usb.jpg")
+dft = cv2.imread("usb1.jpg")
 dif = cv2.imread("bluegreen.jpg")
 ali = cv2.imread("notaligned.jpg")
 tlt = cv2.imread("tilted.jpg")
@@ -71,9 +76,7 @@ def searchBoxes(mask, template):
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     for cnt in contours:
-        print("Found a contour...")
         x, y, w, h = cv2.boundingRect(cnt)
-        print(f'Contour at {x}, {y} with width {w} and height {h}')
         if ((tw * 0.75 < w and w < tw * 1.25) and (th * 0.75 < h and h < th * 1.25)) or ((tw * 2 * 0.75 < w and w < tw * 2 * 1.25) and (th * 0.75 < h and h < th * 1.25)):
             print('Within Template Size...')
             if w > h:
@@ -105,14 +108,25 @@ def classifyBoxes(boxes, cmask, gmask):
         
     return new_boxes
 
+def are_boxes_similar(datBT, boxes, threshold):
+    for box1, box2 in zip(datBT, boxes):
+        if any(abs(val1 - val2) > threshold for val1, val2 in zip(box1[:5], box2[:5])):
+            return False
+    return True
+
 
 if __name__ == '__main__':
     boxes = []
+    datBT = []
+    tracker = 0
     if img_flag:
         detected = img
     else:
         _, detected = cam.read()
     while True:
+        if tracker >= track:
+            break
+
         if img_flag:
             frame = img
             ret = True
@@ -122,7 +136,7 @@ if __name__ == '__main__':
         if not ret:
             break
 
-        if time.time() - process_time >= 3:                         # Only process every three seconds
+        if time.time() - process_time >= 1:                         # Only process every seconds
             process_frame = frame
 
             process_frame = cv2.GaussianBlur(process_frame, (5, 5), 0)  # Remove noise w/ Gaussian
@@ -148,6 +162,21 @@ if __name__ == '__main__':
             template = searchGreen(gframe)
             boxes = searchBoxes(mask, template)
             boxes = classifyBoxes(boxes, cmask, gmask)
+
+            if len(boxes) != 0:
+                if tracker == 0:
+                    datBT = boxes
+                    tracker = 1
+                elif tracker < track:
+                    tracker += 1
+                    if not are_boxes_similar(datBT, boxes, 30):
+                        tracker = 0
+                        print("Inconsistent, retracking...")
+                else:
+                    print("Consistent, sending data...")
+                    if datBT == boxes:
+                        break
+
 
             process_time = time.time()
         
@@ -191,3 +220,17 @@ if __name__ == '__main__':
 
     cam.release()
     cv2.destroyAllWindows()
+
+    if (len(boxes) != 0):
+        box_array = ''
+        print(f'Sending {datBT}...')
+        for dat in datBT:
+            _, _, _, _, c = dat
+            box_array += str(c)
+        box_array = box_array[::-1]
+        print(f'Final Data: {box_array}')
+        ser = serial.Serial(com, 38400)
+
+        ser.write(box_array.encode())
+
+        ser.close()
