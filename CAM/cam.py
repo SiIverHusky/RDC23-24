@@ -18,23 +18,19 @@ lower_red_180 = np.array([170,120,120])
 higher_red_180 = np.array([180, 255, 255])
 
 lower_blue = np.array([80,75,75])
-higher_blue = np.array([110, 255, 255])
+higher_blue = np.array([130, 255, 255])
 
-lower_green = np.array([30,20,20])
+lower_green = np.array([25,20,20])
 higher_green = np.array([75, 255, 255])
 
-# Flags
-red_flag = True
+# Flag
 img_flag = True
-mask_flag = True
 
 # Capture Sources
 cam = cv2.VideoCapture(1)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-dft = cv2.imread("usb1.jpg")
-dif = cv2.imread("bluegreen.jpg")
-ali = cv2.imread("notaligned.jpg")
-tlt = cv2.imread("tilted.jpg")
+dft = cv2.imread("usb3.jpg")
+
 
 img = dft
 
@@ -137,7 +133,7 @@ if __name__ == '__main__':
         if not ret:
             break
 
-        if time.time() - process_time >= 1:                         # Only process every seconds
+        if time.time() - process_time >= 2:                         # Only process every 2 seconds
             process_frame = frame
 
             process_frame = cv2.GaussianBlur(process_frame, (5, 5), 0)  # Remove noise w/ Gaussian
@@ -145,12 +141,11 @@ if __name__ == '__main__':
 
             hsv = cv2.cvtColor(process_frame, cv2.COLOR_BGR2HSV)        # Convert to HSV
 
-            if red_flag:
-                lmask = cv2.inRange(hsv, lower_red_0, higher_red_0)
-                umask = cv2.inRange(hsv, lower_red_180, higher_red_180)
-                cmask = cv2.bitwise_or(lmask, umask)
-            else:
-                cmask = cv2.inRange(hsv, lower_blue, higher_blue)
+            lmask = cv2.inRange(hsv, lower_red_0, higher_red_0)
+            umask = cv2.inRange(hsv, lower_red_180, higher_red_180)
+            cmask = cv2.bitwise_or(lmask, umask)
+            bmask = cv2.inRange(hsv, lower_blue, higher_blue)
+            cmask = cv2.bitwise_or(cmask, bmask)
 
             gmask = cv2.inRange(hsv, lower_green, higher_green)
             mask = cv2.bitwise_or(cmask, gmask)
@@ -193,31 +188,14 @@ if __name__ == '__main__':
                     cv2.rectangle(detected, (x, y), (x+w, y+h), (255, 0, 255), 2)
                     cv2.putText(detected, "1", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 255), 2)
         
-        if mask_flag:
-            cv2.imshow('CAM', detected)
-        else:
-            cv2.imshow('CAM', frame)
+
+        cv2.imshow('CAM', frame)
+        cv2.imshow('BOX', detected)
+
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-        if cv2.waitKey(1) & 0xFF == ord('m'):
-            mask_flag = not mask_flag
-        if cv2.waitKey(1) & 0xFF == ord('t'):
-            test_flag = not test_flag
-        if cv2.waitKey(1) & 0xFF == ord('r'):
-            red_flag = True
-        if cv2.waitKey(1) & 0xFF == ord('b'):
-            red_flag = False
-        if cv2.waitKey(1) & 0xFF == ord('t'):
-            test_flag = not test_flag
-        if cv2.waitKey(1) & 0xFF == ord('0'):
-            img = dft
-        if cv2.waitKey(1) & 0xFF == ord('1'):
-            img = dif
-        if cv2.waitKey(1) & 0xFF == ord('2'):
-            img = ali
-        if cv2.waitKey(1) & 0xFF == ord('3'):
-            img = tlt
+
 
     cam.release()
     cv2.destroyAllWindows()
