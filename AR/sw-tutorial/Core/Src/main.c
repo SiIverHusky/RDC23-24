@@ -300,7 +300,7 @@ int main(void)
   MX_CAN2_Init();
  // MX_SPI1_Init();
   MX_USART1_UART_Init();
-  MX_I2C2_Init();
+//  MX_I2C2_Init();
   MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_TIM5_Init();
@@ -330,14 +330,17 @@ int main(void)
 	gpio_reset(pop1);
 	//gpio_reset(pop2);
 
-	char datBT[4] = '\0';
+	static char datBT[4];
 	uint8_t box_array[4] = {0,0,0,0};
 	bool box_flag = false;
 	while (1)
 	{
+		tft_prints(0, 6, "ON");
 		if (!box_flag){
+			tft_prints(0, 0, "Waiting for BT transfer");
+			datBT[0] = 'n';
 			HAL_UART_Receive(&huart1, (uint8_t *)datBT, 4, 0xFFFF);
-			if (datBT != '\0')
+			if (datBT[0] != 'n')
 			{
 				for (int i = 0; i < 4; i++)
 				{
@@ -348,22 +351,33 @@ int main(void)
 				tft_prints(0, 2, "Box 3: %d", box_array[2]);
 				tft_prints(0, 3, "Box 4: %d", box_array[3]);
 				box_flag = true;
+				for(int i = 0; i < 4; i++)
+				{
+					if (box_array[i] > 1 || box_array[i] < 0)
+						box_flag = false;
+				}
 			}
 		}
 		else
 		{
-			can_ctrl_loop();
+			tft_prints(0, 0, "AR is running");
+			tft_prints(0, 1, "Box 1: %d", box_array[0]);
+			tft_prints(0, 2, "Box 2: %d", box_array[1]);
+			tft_prints(0, 3, "Box 3: %d", box_array[2]);
+			tft_prints(0, 4, "Box 4: %d", box_array[3]);
 			tft_update(100);
-
-			if (HAL_GetTick() - last_ticks < 700){
-			test_pid(CAN2_MOTOR0, 40, 9, 0, 50, &last_error_frontR);
-			}
-			else if (HAL_GetTick() - last_ticks < 1400){
-			test_pid(CAN2_MOTOR0, -40, 9, 0, 50, &last_error_frontR);
-			}
-			else {
-				last_ticks = HAL_GetTick();
-			}
+//			can_ctrl_loop();
+//			tft_update(100);
+//
+//			if (HAL_GetTick() - last_ticks < 700){
+//			test_pid(CAN2_MOTOR0, 40, 9, 0, 50, &last_error_frontR);
+//			}
+//			else if (HAL_GetTick() - last_ticks < 1400){
+//			test_pid(CAN2_MOTOR0, -40, 9, 0, 50, &last_error_frontR);
+//			}
+//			else {
+//				last_ticks = HAL_GetTick();
+//			}
 
 
 			// main code
@@ -501,6 +515,7 @@ int main(void)
 						}*/
 
 		}
+		tft_update(100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
