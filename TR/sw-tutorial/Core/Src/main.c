@@ -24,6 +24,7 @@
 #include "gpio.h"
 #include "i2c.h"
 #include "spi.h"
+#include "stdbool.h"
 #include "tim.h"
 #include "usart.h"
 
@@ -73,12 +74,197 @@ uint16_t stringlen(char *str) {
     return count;
 }
 
-/* USER CODE END 0 */
+char rx_buff[23]; //"sx+000Xy+000Yr+000Rb0B";
 
-/**
- * @brief  The application entry point.
- * @retval int
- */
+static int8_t x = 0;
+static int8_t y = 0;
+static int8_t r = 0;
+static int8_t b = 0;
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    char storer[5];
+
+    if (huart->Instance == huart1.Instance) {
+        HAL_UART_Receive_IT(&huart1, (uint8_t *)&rx_buff, 22);
+
+        rx_buff[22] = '\0';
+
+        tft_prints(0, 0, "%s", rx_buff);
+
+        for (int i = 0; i < stringlen(rx_buff); i++) {
+            switch (rx_buff[i]) {
+                case 'x':
+                    if (i + 4 <= 21) {
+                        storer[0] = rx_buff[i + 1];
+                        storer[1] = rx_buff[i + 2];
+                        storer[2] = rx_buff[i + 3];
+                        storer[3] = rx_buff[i + 4];
+                        storer[4] = '\0';
+                        if (abs(atoi(storer)) <= 100) {
+                            x = atoi(storer);
+                        }
+                    } else if (i + 2 <= 21 || i + 3 <= 21) {
+                        if (rx_buff[i + 2] == '0') {
+                            x = 0;
+                        } else {
+                            storer[0] = rx_buff[i + 1];
+                            storer[1] = '5';
+                            storer[2] = '0';
+                            storer[3] = '\0';
+                            x = atoi(storer);
+                        }
+                    } else {
+                        x = 0;
+                    }
+                    break;
+                case 'X':
+                    if (i - 4 >= 0) {
+                        storer[0] = rx_buff[i - 4];
+                        storer[1] = rx_buff[i - 3];
+                        storer[2] = rx_buff[i - 2];
+                        storer[3] = rx_buff[i - 1];
+                        storer[4] = '\0';
+                        if (abs(atoi(storer)) <= 100) {
+                            x = atoi(storer);
+                        }
+                    } else if (i - 3 >= 0) {
+                        if (rx_buff[i - 3] == '0') {
+                            x = 0;
+                        } else {
+                            storer[0] = rx_buff[i - 3];
+                            storer[1] = '5';
+                            storer[2] = '0';
+                            storer[3] = '\0';
+                            x = atoi(storer);
+                        }
+                    } else {
+                        x = 0;
+                    }
+                    break;
+                case 'y':
+                    if (i + 4 <= 21) {
+                        storer[0] = rx_buff[i + 1];
+                        storer[1] = rx_buff[i + 2];
+                        storer[2] = rx_buff[i + 3];
+                        storer[3] = rx_buff[i + 4];
+                        storer[4] = '\0';
+                        if (abs(atoi(storer)) <= 100) {
+                            y = -atoi(storer);
+                        }
+                    } else if (i + 2 <= 21 || i + 3 <= 21) {
+                        if (rx_buff[i + 2] == '0') {
+                            y = 0;
+                        } else {
+                            storer[0] = rx_buff[i + 1];
+                            storer[1] = '5';
+                            storer[2] = '0';
+                            storer[3] = '\0';
+                            y = -atoi(storer);
+                        }
+                    } else {
+                        y = 0;
+                    }
+                    break;
+                case 'Y':
+                    if (i - 4 >= 0) {
+                        storer[0] = rx_buff[i - 4];
+                        storer[1] = rx_buff[i - 3];
+                        storer[2] = rx_buff[i - 2];
+                        storer[3] = rx_buff[i - 1];
+                        storer[4] = '\0';
+                        if (abs(atoi(storer)) <= 100) {
+                            y = -atoi(storer);
+                        }
+                    } else if (i - 3 >= 0) {
+                        if (rx_buff[i - 3] == '0') {
+                            y = 0;
+                        } else {
+                            storer[0] = rx_buff[i - 3];
+                            storer[1] = '5';
+                            storer[2] = '0';
+                            storer[3] = '\0';
+                            y = -atoi(storer);
+                        }
+                    } else {
+                        y = 0;
+                    }
+                    break;
+                case 'r':
+                    if (i + 4 <= 21) {
+                        storer[0] = rx_buff[i + 1];
+                        storer[1] = rx_buff[i + 2];
+                        storer[2] = rx_buff[i + 3];
+                        storer[3] = rx_buff[i + 4];
+                        storer[4] = '\0';
+                        if (abs(atoi(storer)) <= 100) {
+                            r = atoi(storer);
+                        }
+                    } else if (i + 2 <= 21 || i + 3 <= 21) {
+                        if (rx_buff[i + 2] == '0') {
+                            r = 0;
+                        } else {
+                            storer[0] = rx_buff[i + 1];
+                            storer[1] = '5';
+                            storer[2] = '0';
+                            storer[3] = '\0';
+                            r = atoi(storer);
+                        }
+                    } else {
+                        r = 0;
+                    }
+                    break;
+                case 'R':
+                    if (i - 4 >= 0) {
+                        storer[0] = rx_buff[i - 4];
+                        storer[1] = rx_buff[i - 3];
+                        storer[2] = rx_buff[i - 2];
+                        storer[3] = rx_buff[i - 1];
+                        storer[4] = '\0';
+                        if (abs(atoi(storer)) <= 100) {
+                            r = atoi(storer);
+                        }
+                    } else if (i - 3 >= 0) {
+                        if (rx_buff[i - 3] == '0') {
+                            r = 0;
+                        } else {
+                            storer[0] = rx_buff[i - 3];
+                            storer[1] = '5';
+                            storer[2] = '0';
+                            storer[3] = '\0';
+                            r = atoi(storer);
+                        }
+                    } else {
+                        r = 0;
+                    }
+                    break;
+                case 'b':
+                    if (i + 1 <= 21) {
+                        storer[0] = rx_buff[i + 1];
+                        storer[1] = '\0';
+                        if (atoi(storer) >= 0 && atoi(storer) <= 6) {
+                            b = atoi(storer);
+                        }
+                    } else {
+                        b = 0;
+                    }
+                    break;
+                case 'B':
+                    if (i - 1 >= 0) {
+                        storer[0] = rx_buff[i - 1];
+                        storer[1] = '\0';
+                        if (atoi(storer) >= 0 && atoi(storer) <= 6) {
+                            b = atoi(storer);
+                        }
+                    } else {
+                        b = 0;
+                    }
+                    break;
+                default: break;
+            }
+        }
+    }
+}
+
 int main(void) {
     /* USER CODE BEGIN 1 */
 
@@ -108,8 +294,11 @@ int main(void) {
     MX_DMA_Init();
     MX_USART2_UART_Init();
     MX_TIM5_Init();
+
     /* USER CODE BEGIN 2 */
     volatile uint32_t last_ticks = 0;
+
+    HAL_UART_Receive_IT(&huart1, (uint8_t *)&rx_buff, 22);
 
     // we turn off all the led first
     led_off(LED1);
@@ -126,122 +315,70 @@ int main(void) {
     /* USER CODE BEGIN WHILE */
     tft_force_clear();
 
-    // double arr[5000];
-    // int i = 0;
-    // char temp[16];
-    // int j = 0;
+    // test PID
+//    double arr[5000];
+//    int i = 0;
+//    char temp[16];
+//    int j = 0;
 
     const int16_t Kp = 9;
     const int16_t Ki = 0;
     const int16_t Kd = 50;
 
-    int16_t last_error_frontL = 0;
-    int16_t last_error_frontR = 0;
-    int16_t last_error_back = 0;
+    int16_t last_error_frontL;
+    int16_t last_error_frontR;
+    int16_t last_error_back;
 
-    // frontL CAN1_MOTOR2
-    // frontR CAN1_MOTOR1
-    // back CAN1_MOTOR0
+    // frontL  CAN2_MOTOR2
+    // frontR  CAN2_MOTOR1
+    // back    CAN2_MOTOR3
+    // gripper CAN2_MOTOR0
 
-    static char moveVal[22] = "sx+000Xy+000Yr+000Rb0B";
-    char storer[5];
-    static int8_t x, y, r, b = 0;
+    // control
+    bool auto_shortcut = false;
 
     while (1) {
         can_ctrl_loop();
 
         tft_update(100);
 
-        HAL_UART_Receive(&huart1, (uint8_t *)&moveVal, sizeof(moveVal), 1);
-        tft_prints(0, 1, "%s", moveVal);
-    
-        for (int i = 0; i < stringlen(moveVal); i++) {
-            if (moveVal[i] == 'x') {
-                if (i + 4 <= 21) {
-                    storer[0] = moveVal[i + 1];
-                    storer[1] = moveVal[i + 2];
-                    storer[2] = moveVal[i + 3];
-                    storer[3] = moveVal[i + 4];
-                    storer[4] = '\0';
-                    if (abs(atoi(storer)) <= 100) {
-                        x = atoi(storer);
-                    }
-                }
-            } else if (moveVal[i] == 'y') {
-                if (i + 4 <= 21) {
-                    storer[0] = moveVal[i + 1];
-                    storer[1] = moveVal[i + 2];
-                    storer[2] = moveVal[i + 3];
-                    storer[3] = moveVal[i + 4];
-                    storer[4] = '\0';
-                    if (abs(atoi(storer)) <= 100) {
-                        y = atoi(storer);
-                    }
-                }
-            } else if (moveVal[i] == 'r') {
-                if (i + 4 <= 21) {
-                    storer[0] = moveVal[i + 1];
-                    storer[1] = moveVal[i + 2];
-                    storer[2] = moveVal[i + 3];
-                    storer[3] = moveVal[i + 4];
-                    storer[4] = '\0';
-                    if (abs(atoi(storer)) <= 100) {
-                        r = atoi(storer);
-                    }
-                }
-            } else if (moveVal[i] == 'b') {
-                if (i + 1 <= 21) {
-                    storer[0] = moveVal[i + 1];
-                    storer[1] = '\0';
-                    if (atoi(storer) >= 0 && atoi(storer) <= 2) {
-                        b = atoi(storer);
-                    }
-                }
-            }
-        }
+        tft_prints(0, 1, "x: %d ", x);
+        tft_prints(0, 2, "y: %d ", y);
+        tft_prints(0, 3, "r: %d ", r);
+        tft_prints(0, 4, "b: %d ", b);
 
-        tft_prints(0, 2, "x: %d", x);
-        tft_prints(0, 3, "y: %d", y);
-        tft_prints(0, 4, "r: %d", r);
-        tft_prints(0, 5, "b: %d", b);
+        move(CAN2_MOTOR2, CAN2_MOTOR1, CAN2_MOTOR3, x, y, r, &last_error_frontL, &last_error_frontR, &last_error_back);
 
-        // test pid
-        /*
-        if (HAL_GetTick() <= 1000) {
-            test_pid(CAN1_MOTOR2, 0, Kp, Ki, Kd, &last_error_frontL);
-        } else if (HAL_GetTick() > 1000 && HAL_GetTick() <= 2000) {
-            test_pid(CAN1_MOTOR2, 0, Kp, Ki, Kd, &last_error_frontL);
-        } else if (HAL_GetTick() > 2000 && HAL_GetTick() <= 3000) {
-            test_pid(CAN1_MOTOR2, -100, Kp, Ki, Kd, &last_error_frontL);
-        } else if (HAL_GetTick() > 3000) {
-            test_pid(CAN1_MOTOR2, 0, Kp, Ki, Kd, &last_error_frontL);
-        }
-
-        tft_prints(0, 5, "TIME: %d", HAL_GetTick());
-
-        if (i < 5000) {
-            arr[i++] = get_motor_feedback(CAN1_MOTOR2).vel_rpm / 20.0;
-        }
-
-        if (i == 5000 && j < 5000) {
-            snprintf(temp, 16, "%f", arr[j++]);
-            temp[8] = '\n';
-            temp[9] = '\0';
-            HAL_UART_Transmit(&huart1, (uint8_t *)&temp, stringlen(temp), 1);
-        }*/
-
-        /// HAL_UART_Receive(&huart1, (uint8_t *)&moveVal, sizeof(moveVal), 1);
-
-        // test_movement(CAN1_MOTOR2, CAN1_MOTOR1, CAN1_MOTOR0, 'w', &last_error_frontL, &last_error_frontR,
-        // &last_error_back);
+        // test PID
+        //        if (HAL_GetTick() <= 1000) {
+        //            test_pid(CAN2_MOTOR3, 0, Kp, Ki, Kd, &last_error_frontL);
+        //        } else if (HAL_GetTick() > 1000 && HAL_GetTick() <= 2000) {
+        //            test_pid(CAN2_MOTOR3, 200, Kp, Ki, Kd, &last_error_frontL);
+        //        } else if (HAL_GetTick() > 2000 && HAL_GetTick() <= 3000) {
+        //            test_pid(CAN2_MOTOR3, 200, Kp, Ki, Kd, &last_error_frontL);
+        //        } else if (HAL_GetTick() > 3000) {
+        //            test_pid(CAN2_MOTOR1, 0, Kp, Ki, Kd, &last_error_frontL);
+        //        }
+        //
+        //        tft_prints(0, 5, "TIME: %d", HAL_GetTick());
+        //
+        //        if (i < 5000) {
+        //            arr[i++] = get_motor_feedback(CAN2_MOTOR1).vel_rpm / 20.0;
+        //        }
+        //
+        //        if (i == 5000 && j < 5000) {
+        //            snprintf(temp, 16, "%f", arr[j++]);
+        //            temp[8] = '\n';
+        //            temp[9] = '\0';
+        //            HAL_UART_Transmit(&huart2, (uint8_t *)&temp, stringlen(temp), 1);
+        //        }
 
         if (HAL_GetTick() == 0 && last_ticks != 0) {
-            last_ticks = last_ticks % 1000;
-        } else if (HAL_GetTick() - last_ticks >= 1000) {
+            last_ticks = last_ticks % 250;
+        } else if (HAL_GetTick() - last_ticks >= 250) {
             led_toggle(LED1);
             last_ticks = HAL_GetTick();
         }
-        tft_prints(0, 0, "%d", HAL_GetTick());
     }
 }
 
