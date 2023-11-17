@@ -1,4 +1,3 @@
-"./Core/Src/bluetooth.o"
 "./Core/Src/can.o"
 "./Core/Src/dma.o"
 "./Core/Src/gpio.o"

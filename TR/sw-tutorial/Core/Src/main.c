@@ -102,7 +102,7 @@ int main(void) {
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
-    MX_CAN1_Init();
+//    MX_CAN1_Init();
     MX_CAN2_Init();
     MX_USART1_UART_Init();
     MX_DMA_Init();
@@ -134,10 +134,24 @@ int main(void) {
     const int16_t Kp = 9;
     const int16_t Ki = 0;
     const int16_t Kd = 50;
+    const int32_t Kp_a = 9000000;
+    const int32_t Ki_a = 0;
+    const int32_t Kd_a = 0;
+
+    int16_t turn_up = 0;
+    int16_t last_angle_up =0;
+
+    int16_t turn_down = 0;
+    int16_t last_angle_down =0;
 
     int16_t last_error_frontL = 0;
     int16_t last_error_frontR = 0;
     int16_t last_error_back = 0;
+
+    int16_t last_error_up = 0;
+    int16_t last_error_down = 0;
+    double last_error_angle_up = 0;
+    double last_error_angle_down = 0;
 
     // frontL CAN1_MOTOR2
     // frontR CAN1_MOTOR1
@@ -149,17 +163,19 @@ int main(void) {
         can_ctrl_loop();
 
         tft_update(100);
-
+        if (HAL_GetTick() % 500 == 0) {
+                   led_toggle(LED1);
+               }
         // test pid
-        /*if (HAL_GetTick() <= 1000) {
-            test_pid(CAN1_MOTOR1, 0, Kp, Ki, Kd, &last_error);
-        } else if (HAL_GetTick() > 1000 && HAL_GetTick() <= 2000) {
-            test_pid(CAN1_MOTOR1, 500, Kp, Ki, Kd, &last_error);
-        } else if (HAL_GetTick() > 2000 && HAL_GetTick() <= 3000) {
+        if (HAL_GetTick() <= 5000) {
+//        	set_motor_angle(CAN2_MOTOR1,70,Kp_a,Ki_a,Kd_a,turn_down, &last_error_angle_down, &last_error_down);
+        } else if (HAL_GetTick()> 5000) {
+//        	set_motor_angle(CAN2_MOTOR1,20,Kp_a,Ki_a,Kd_a,turn_down, &last_error_angle_down, &last_error_down);
+        }/* else if (HAL_GetTick() > 2000 && HAL_GetTick() <= 3000) {
             test_pid(CAN1_MOTOR1, -500, Kp, Ki, Kd, &last_error);
         } else if (HAL_GetTick() > 3000) {
             test_pid(CAN1_MOTOR1, 0, Kp, Ki, Kd, &last_error);
-        }
+        }/*
 
         tft_prints(0, 5, "TIME: %d", HAL_GetTick());
 
@@ -172,15 +188,13 @@ int main(void) {
             temp[8] = '\n';
             temp[9] = '\0';
             HAL_UART_Transmit(&huart1, (uint8_t *)&temp, stringlen(temp), 1);
-        }*/
+//        }*/
+        check_turn(CAN2_MOTOR1 , &turn_down, &last_angle_down);
+        set_motor_angle(CAN2_MOTOR1,70,Kp_a,Ki_a,Kd_a,turn_down, &last_error_angle_down, &last_error_down);
+////
+//        set_motor_speed(CAN2_MOTOR0,10,Kp,Ki,Kd,&last_angle_down);
+        tft_prints(0,0,"%d  %d",get_motor_feedback(CAN2_MOTOR1).encoder,turn_down);
 
-        HAL_UART_Receive(&huart1, (uint8_t *)&moveVal, sizeof(moveVal), 100);
-
-        test_movement(CAN1_MOTOR2, CAN1_MOTOR1, CAN1_MOTOR0, moveVal, &last_error_frontL, &last_error_frontR, &last_error_back);
-
-        if (HAL_GetTick() % 500 == 0) {
-            led_toggle(LED1);
-        }
     }
 }
 

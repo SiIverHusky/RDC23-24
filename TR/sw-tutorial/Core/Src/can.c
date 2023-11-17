@@ -20,10 +20,11 @@
 /* Includes ------------------------------------------------------------------*/
 #include "can.h"
 
-#include "lcd/lcd.h"
 #include "main.h"
-
+#include "stdio.h"
 /* USER CODE BEGIN 0 */
+
+#include <stdbool.h>
 
 int16_t rm_ctrl_cmd[MAX_CAN_RM * NUM_OF_CAN] = {0};
 MotorStats rm_fb_cmd[MAX_CAN_RM * NUM_OF_CAN] = {0};
@@ -35,300 +36,354 @@ CAN_HandleTypeDef hcan2;
 
 /* CAN1 init function */
 void MX_CAN1_Init(void) {
-    /* USER CODE BEGIN CAN1_Init 0 */
+	/* USER CODE BEGIN CAN1_Init 0 */
 
-    /* USER CODE END CAN1_Init 0 */
+	/* USER CODE END CAN1_Init 0 */
 
-    /* USER CODE BEGIN CAN1_Init 1 */
+	/* USER CODE BEGIN CAN1_Init 1 */
 
-    /* USER CODE END CAN1_Init 1 */
-    hcan1.Instance = CAN1;
-    hcan1.Init.Prescaler = 3;
-    hcan1.Init.Mode = CAN_MODE_NORMAL;
-    hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
-    hcan1.Init.TimeSeg1 = CAN_BS1_10TQ;
-    hcan1.Init.TimeSeg2 = CAN_BS2_3TQ;
-    hcan1.Init.TimeTriggeredMode = DISABLE;
-    hcan1.Init.AutoBusOff = DISABLE;
-    hcan1.Init.AutoWakeUp = DISABLE;
-    hcan1.Init.AutoRetransmission = DISABLE;
-    hcan1.Init.ReceiveFifoLocked = DISABLE;
-    hcan1.Init.TransmitFifoPriority = DISABLE;
-    if (HAL_CAN_Init(&hcan1) != HAL_OK) {
-        Error_Handler();
-    }
-    /* USER CODE BEGIN CAN1_Init 2 */
+	/* USER CODE END CAN1_Init 1 */
+	hcan1.Instance = CAN1;
+	hcan1.Init.Prescaler = 3;
+	hcan1.Init.Mode = CAN_MODE_NORMAL;
+	hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
+	hcan1.Init.TimeSeg1 = CAN_BS1_10TQ;
+	hcan1.Init.TimeSeg2 = CAN_BS2_3TQ;
+	hcan1.Init.TimeTriggeredMode = DISABLE;
+	hcan1.Init.AutoBusOff = DISABLE;
+	hcan1.Init.AutoWakeUp = DISABLE;
+	hcan1.Init.AutoRetransmission = DISABLE;
+	hcan1.Init.ReceiveFifoLocked = DISABLE;
+	hcan1.Init.TransmitFifoPriority = DISABLE;
+	if (HAL_CAN_Init(&hcan1) != HAL_OK) {
+		Error_Handler();
+	}
+	/* USER CODE BEGIN CAN1_Init 2 */
 
-    /* USER CODE END CAN1_Init 2 */
+	/* USER CODE END CAN1_Init 2 */
 }
 /* CAN2 init function */
 void MX_CAN2_Init(void) {
-    /* USER CODE BEGIN CAN2_Init 0 */
+	/* USER CODE BEGIN CAN2_Init 0 */
 
-    /* USER CODE END CAN2_Init 0 */
+	/* USER CODE END CAN2_Init 0 */
 
-    /* USER CODE BEGIN CAN2_Init 1 */
+	/* USER CODE BEGIN CAN2_Init 1 */
 
-    /* USER CODE END CAN2_Init 1 */
-    hcan2.Instance = CAN2;
-    hcan2.Init.Prescaler = 3;
-    hcan2.Init.Mode = CAN_MODE_NORMAL;
-    hcan2.Init.SyncJumpWidth = CAN_SJW_1TQ;
-    hcan2.Init.TimeSeg1 = CAN_BS1_10TQ;
-    hcan2.Init.TimeSeg2 = CAN_BS2_3TQ;
-    hcan2.Init.TimeTriggeredMode = DISABLE;
-    hcan2.Init.AutoBusOff = DISABLE;
-    hcan2.Init.AutoWakeUp = DISABLE;
-    hcan2.Init.AutoRetransmission = DISABLE;
-    hcan2.Init.ReceiveFifoLocked = DISABLE;
-    hcan2.Init.TransmitFifoPriority = DISABLE;
-    if (HAL_CAN_Init(&hcan2) != HAL_OK) {
-        Error_Handler();
-    }
-    /* USER CODE BEGIN CAN2_Init 2 */
+	/* USER CODE END CAN2_Init 1 */
+	hcan2.Instance = CAN2;
+	hcan2.Init.Prescaler = 3;
+	hcan2.Init.Mode = CAN_MODE_NORMAL;
+	hcan2.Init.SyncJumpWidth = CAN_SJW_1TQ;
+	hcan2.Init.TimeSeg1 = CAN_BS1_10TQ;
+	hcan2.Init.TimeSeg2 = CAN_BS2_3TQ;
+	hcan2.Init.TimeTriggeredMode = DISABLE;
+	hcan2.Init.AutoBusOff = DISABLE;
+	hcan2.Init.AutoWakeUp = DISABLE;
+	hcan2.Init.AutoRetransmission = DISABLE;
+	hcan2.Init.ReceiveFifoLocked = DISABLE;
+	hcan2.Init.TransmitFifoPriority = DISABLE;
+	if (HAL_CAN_Init(&hcan2) != HAL_OK) {
+		Error_Handler();
+	}
+	/* USER CODE BEGIN CAN2_Init 2 */
 
-    /* USER CODE END CAN2_Init 2 */
+	/* USER CODE END CAN2_Init 2 */
 }
 
 static uint32_t HAL_RCC_CAN1_CLK_ENABLED = 0;
 
 void HAL_CAN_MspInit(CAN_HandleTypeDef *canHandle) {
-    GPIO_InitTypeDef GPIO_InitStruct = {0};
-    if (canHandle->Instance == CAN1) {
-        /* USER CODE BEGIN CAN1_MspInit 0 */
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	if (canHandle->Instance == CAN1) {
+		/* USER CODE BEGIN CAN1_MspInit 0 */
 
-        /* USER CODE END CAN1_MspInit 0 */
-        /* CAN1 clock enable */
-        HAL_RCC_CAN1_CLK_ENABLED++;
-        if (HAL_RCC_CAN1_CLK_ENABLED == 1) {
-            __HAL_RCC_CAN1_CLK_ENABLE();
-        }
+		/* USER CODE END CAN1_MspInit 0 */
+		/* CAN1 clock enable */
+		HAL_RCC_CAN1_CLK_ENABLED++;
+		if (HAL_RCC_CAN1_CLK_ENABLED == 1) {
+			__HAL_RCC_CAN1_CLK_ENABLE();
+		}
 
-        __HAL_RCC_GPIOA_CLK_ENABLE();
-        /**CAN1 GPIO Configuration
-        PA11     ------> CAN1_RX
-        PA12     ------> CAN1_TX
-        */
-        GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_12;
-        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-        GPIO_InitStruct.Alternate = GPIO_AF9_CAN1;
-        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+		__HAL_RCC_GPIOA_CLK_ENABLE();
+		/**CAN1 GPIO Configuration
+		PA11     ------> CAN1_RX
+		PA12     ------> CAN1_TX
+		*/
+		GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_12;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+		GPIO_InitStruct.Alternate = GPIO_AF9_CAN1;
+		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-        /* USER CODE BEGIN CAN1_MspInit 1 */
+		/* USER CODE BEGIN CAN1_MspInit 1 */
 
-        /* USER CODE END CAN1_MspInit 1 */
-    } else if (canHandle->Instance == CAN2) {
-        /* USER CODE BEGIN CAN2_MspInit 0 */
+		/* USER CODE END CAN1_MspInit 1 */
+	} else if (canHandle->Instance == CAN2) {
+		/* USER CODE BEGIN CAN2_MspInit 0 */
 
-        /* USER CODE END CAN2_MspInit 0 */
-        /* CAN2 clock enable */
-        __HAL_RCC_CAN2_CLK_ENABLE();
-        HAL_RCC_CAN1_CLK_ENABLED++;
-        if (HAL_RCC_CAN1_CLK_ENABLED == 1) {
-            __HAL_RCC_CAN1_CLK_ENABLE();
-        }
+		/* USER CODE END CAN2_MspInit 0 */
+		/* CAN2 clock enable */
+		__HAL_RCC_CAN2_CLK_ENABLE();
+		HAL_RCC_CAN1_CLK_ENABLED++;
+		if (HAL_RCC_CAN1_CLK_ENABLED == 1) {
+			__HAL_RCC_CAN1_CLK_ENABLE();
+		}
 
-        __HAL_RCC_GPIOB_CLK_ENABLE();
-        /**CAN2 GPIO Configuration
-        PB12     ------> CAN2_RX
-        PB13     ------> CAN2_TX
-        */
-        GPIO_InitStruct.Pin = GPIO_PIN_12 | GPIO_PIN_13;
-        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-        GPIO_InitStruct.Alternate = GPIO_AF9_CAN2;
-        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+		__HAL_RCC_GPIOB_CLK_ENABLE();
+		/**CAN2 GPIO Configuration
+		PB12     ------> CAN2_RX
+		PB13     ------> CAN2_TX
+		*/
+		GPIO_InitStruct.Pin = GPIO_PIN_12 | GPIO_PIN_13;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+		GPIO_InitStruct.Alternate = GPIO_AF9_CAN2;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-        /* USER CODE BEGIN CAN2_MspInit 1 */
+		/* USER CODE BEGIN CAN2_MspInit 1 */
 
-        /* USER CODE END CAN2_MspInit 1 */
-    }
+		/* USER CODE END CAN2_MspInit 1 */
+	}
 }
 
 void HAL_CAN_MspDeInit(CAN_HandleTypeDef *canHandle) {
-    if (canHandle->Instance == CAN1) {
-        /* USER CODE BEGIN CAN1_MspDeInit 0 */
+	if (canHandle->Instance == CAN1) {
+		/* USER CODE BEGIN CAN1_MspDeInit 0 */
 
-        /* USER CODE END CAN1_MspDeInit 0 */
-        /* Peripheral clock disable */
-        HAL_RCC_CAN1_CLK_ENABLED--;
-        if (HAL_RCC_CAN1_CLK_ENABLED == 0) {
-            __HAL_RCC_CAN1_CLK_DISABLE();
-        }
+		/* USER CODE END CAN1_MspDeInit 0 */
+		/* Peripheral clock disable */
+		HAL_RCC_CAN1_CLK_ENABLED--;
+		if (HAL_RCC_CAN1_CLK_ENABLED == 0) {
+			__HAL_RCC_CAN1_CLK_DISABLE();
+		}
 
-        /**CAN1 GPIO Configuration
-        PA11     ------> CAN1_RX
-        PA12     ------> CAN1_TX
-        */
-        HAL_GPIO_DeInit(GPIOA, GPIO_PIN_11 | GPIO_PIN_12);
+		/**CAN1 GPIO Configuration
+		PA11     ------> CAN1_RX
+		PA12     ------> CAN1_TX
+		*/
+		HAL_GPIO_DeInit(GPIOA, GPIO_PIN_11 | GPIO_PIN_12);
 
-        /* USER CODE BEGIN CAN1_MspDeInit 1 */
+		/* USER CODE BEGIN CAN1_MspDeInit 1 */
 
-        /* USER CODE END CAN1_MspDeInit 1 */
-    } else if (canHandle->Instance == CAN2) {
-        /* USER CODE BEGIN CAN2_MspDeInit 0 */
+		/* USER CODE END CAN1_MspDeInit 1 */
+	} else if (canHandle->Instance == CAN2) {
+		/* USER CODE BEGIN CAN2_MspDeInit 0 */
 
-        /* USER CODE END CAN2_MspDeInit 0 */
-        /* Peripheral clock disable */
-        __HAL_RCC_CAN2_CLK_DISABLE();
-        HAL_RCC_CAN1_CLK_ENABLED--;
-        if (HAL_RCC_CAN1_CLK_ENABLED == 0) {
-            __HAL_RCC_CAN1_CLK_DISABLE();
-        }
+		/* USER CODE END CAN2_MspDeInit 0 */
+		/* Peripheral clock disable */
+		__HAL_RCC_CAN2_CLK_DISABLE();
+		HAL_RCC_CAN1_CLK_ENABLED--;
+		if (HAL_RCC_CAN1_CLK_ENABLED == 0) {
+			__HAL_RCC_CAN1_CLK_DISABLE();
+		}
 
-        /**CAN2 GPIO Configuration
-        PB12     ------> CAN2_RX
-        PB13     ------> CAN2_TX
-        */
-        HAL_GPIO_DeInit(GPIOB, GPIO_PIN_12 | GPIO_PIN_13);
+		/**CAN2 GPIO Configuration
+		PB12     ------> CAN2_RX
+		PB13     ------> CAN2_TX
+		*/
+		HAL_GPIO_DeInit(GPIOB, GPIO_PIN_12 | GPIO_PIN_13);
 
-        /* USER CODE BEGIN CAN2_MspDeInit 1 */
+		/* USER CODE BEGIN CAN2_MspDeInit 1 */
 
-        /* USER CODE END CAN2_MspDeInit 1 */
-    }
+		/* USER CODE END CAN2_MspDeInit 1 */
+	}
 }
 
 /* USER CODE BEGIN 1 */
 void can_filter_enable(CAN_HandleTypeDef *hcan) {
-    CAN_FilterTypeDef CAN_FilterConfigStructure;
+	CAN_FilterTypeDef CAN_FilterConfigStructure;
 
-    CAN_FilterConfigStructure.FilterIdHigh = 0x0000;
-    CAN_FilterConfigStructure.FilterIdLow = 0x0000;
-    CAN_FilterConfigStructure.FilterMaskIdHigh = 0x0000;
-    CAN_FilterConfigStructure.FilterMaskIdLow = 0x0000;
-    CAN_FilterConfigStructure.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-    CAN_FilterConfigStructure.FilterMode = CAN_FILTERMODE_IDMASK;
-    CAN_FilterConfigStructure.FilterScale = CAN_FILTERSCALE_32BIT;
-    CAN_FilterConfigStructure.FilterActivation = ENABLE;
-    CAN_FilterConfigStructure.SlaveStartFilterBank = 27;
+	CAN_FilterConfigStructure.FilterIdHigh = 0x0000;
+	CAN_FilterConfigStructure.FilterIdLow = 0x0000;
+	CAN_FilterConfigStructure.FilterMaskIdHigh = 0x0000;
+	CAN_FilterConfigStructure.FilterMaskIdLow = 0x0000;
+	CAN_FilterConfigStructure.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+	CAN_FilterConfigStructure.FilterMode = CAN_FILTERMODE_IDMASK;
+	CAN_FilterConfigStructure.FilterScale = CAN_FILTERSCALE_32BIT;
+	CAN_FilterConfigStructure.FilterActivation = ENABLE;
+	CAN_FilterConfigStructure.SlaveStartFilterBank = 27;
 
-    CAN_FilterConfigStructure.FilterBank = 0;
+	CAN_FilterConfigStructure.FilterBank = 0;
 
-    HAL_CAN_ConfigFilter(hcan, &CAN_FilterConfigStructure);
+	HAL_CAN_ConfigFilter(hcan, &CAN_FilterConfigStructure);
 }
 
 void can_filter_disable(CAN_HandleTypeDef *hcan) {
-    CAN_FilterTypeDef CAN_FilterConfigStructure;
+	CAN_FilterTypeDef CAN_FilterConfigStructure;
 
-    CAN_FilterConfigStructure.FilterIdHigh = 0x0000;
-    CAN_FilterConfigStructure.FilterIdLow = 0x0000;
-    CAN_FilterConfigStructure.FilterMaskIdHigh = 0x0000;
-    CAN_FilterConfigStructure.FilterMaskIdLow = 0x0000;
-    CAN_FilterConfigStructure.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-    CAN_FilterConfigStructure.FilterMode = CAN_FILTERMODE_IDMASK;
-    CAN_FilterConfigStructure.FilterScale = CAN_FILTERSCALE_32BIT;
-    CAN_FilterConfigStructure.FilterActivation = DISABLE;
-    CAN_FilterConfigStructure.SlaveStartFilterBank = 27;
+	CAN_FilterConfigStructure.FilterIdHigh = 0x0000;
+	CAN_FilterConfigStructure.FilterIdLow = 0x0000;
+	CAN_FilterConfigStructure.FilterMaskIdHigh = 0x0000;
+	CAN_FilterConfigStructure.FilterMaskIdLow = 0x0000;
+	CAN_FilterConfigStructure.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+	CAN_FilterConfigStructure.FilterMode = CAN_FILTERMODE_IDMASK;
+	CAN_FilterConfigStructure.FilterScale = CAN_FILTERSCALE_32BIT;
+	CAN_FilterConfigStructure.FilterActivation = DISABLE;
+	CAN_FilterConfigStructure.SlaveStartFilterBank = 27;
 
-    CAN_FilterConfigStructure.FilterBank = 0;
+	CAN_FilterConfigStructure.FilterBank = 0;
 
-    HAL_CAN_ConfigFilter(hcan, &CAN_FilterConfigStructure);
+	HAL_CAN_ConfigFilter(hcan, &CAN_FilterConfigStructure);
 }
 
 void can_init() {
-    CAN_FilterTypeDef CAN_FilterConfigStructure;
+	CAN_FilterTypeDef CAN1_FilterConfigStructure;
 
-    CAN_FilterConfigStructure.FilterIdHigh = 0x0000;
-    CAN_FilterConfigStructure.FilterIdLow = 0x0000;
-    CAN_FilterConfigStructure.FilterMaskIdHigh = 0x0000;
-    CAN_FilterConfigStructure.FilterMaskIdLow = 0x0000;
-    CAN_FilterConfigStructure.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-    CAN_FilterConfigStructure.FilterMode = CAN_FILTERMODE_IDMASK;
-    CAN_FilterConfigStructure.FilterScale = CAN_FILTERSCALE_32BIT;
-    CAN_FilterConfigStructure.FilterActivation = ENABLE;
-    CAN_FilterConfigStructure.FilterBank = 0;
+	CAN1_FilterConfigStructure.FilterIdHigh = 0x0000;
+	CAN1_FilterConfigStructure.FilterIdLow = 0x0000;
+	CAN1_FilterConfigStructure.FilterMaskIdHigh = 0x0000;
+	CAN1_FilterConfigStructure.FilterMaskIdLow = 0x0000;
+	CAN1_FilterConfigStructure.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+	CAN1_FilterConfigStructure.FilterMode = CAN_FILTERMODE_IDMASK;
+	CAN1_FilterConfigStructure.FilterScale = CAN_FILTERSCALE_32BIT;
+	CAN1_FilterConfigStructure.FilterActivation = ENABLE;
+	CAN1_FilterConfigStructure.FilterBank = 0;
+	CAN1_FilterConfigStructure.SlaveStartFilterBank = 14;
 
-    HAL_CAN_ConfigFilter(&hcan1, &CAN_FilterConfigStructure);
-    HAL_CAN_Start(&hcan1);
-    HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
+	HAL_CAN_ConfigFilter(&hcan1, &CAN1_FilterConfigStructure);
+	HAL_CAN_Start(&hcan1);
+	HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
 
-    HAL_CAN_ConfigFilter(&hcan2, &CAN_FilterConfigStructure);
-    HAL_CAN_Start(&hcan2);
-    HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);
+	CAN_FilterTypeDef CAN2_FilterConfigStructure;
+
+	CAN2_FilterConfigStructure.FilterIdHigh = 0x0000;
+	CAN2_FilterConfigStructure.FilterIdLow = 0x0000;
+	CAN2_FilterConfigStructure.FilterMaskIdHigh = 0x0000;
+	CAN2_FilterConfigStructure.FilterMaskIdLow = 0x0000;
+	CAN2_FilterConfigStructure.FilterFIFOAssignment = CAN_FILTER_FIFO1;
+	CAN2_FilterConfigStructure.FilterMode = CAN_FILTERMODE_IDMASK;
+	CAN2_FilterConfigStructure.FilterScale = CAN_FILTERSCALE_32BIT;
+	CAN2_FilterConfigStructure.FilterActivation = ENABLE;
+	CAN2_FilterConfigStructure.FilterBank = 14;
+	CAN2_FilterConfigStructure.SlaveStartFilterBank = 14;
+
+	HAL_CAN_ConfigFilter(&hcan2, &CAN2_FilterConfigStructure);
+	HAL_CAN_Start(&hcan2);
+	HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO1_MSG_PENDING);
+}
+
+void can_stop() {
+	HAL_CAN_Stop(&hcan1);
+	HAL_CAN_Stop(&hcan2);
 }
 
 #define GET_MOTOR_FEEDBACK(ptr, data)                                   \
-    {                                                                   \
-        (ptr)->pos_rad = (uint16_t)((data)[0] << 8 | (data)[1]);        \
-        (ptr)->vel_rpm = (uint16_t)((data)[2] << 8 | (data)[3]);        \
-        (ptr)->actual_current = (uint16_t)((data)[4] << 8 | (data)[5]); \
-        (ptr)->temperature = (data)[6];                                 \
-    }
+	{                                                                   \
+		(ptr)->pos_rad = (uint16_t)((data)[0] << 8 | (data)[1]);        \
+		(ptr)->vel_rpm = (uint16_t)((data)[2] << 8 | (data)[3]);        \
+		(ptr)->actual_current = (uint16_t)((data)[4] << 8 | (data)[5]); \
+		(ptr)->temperature = (data)[6];                                 \
+	}
 
 __forceinline void __from_bigendian(uint8_t *in, void *out) {
-    uint8_t *o = out;
-    *o = *(in + 1);
-    *(o + 1) = *in;
+	uint8_t *o = out;
+	*o = *(in + 1);
+	*(o + 1) = *in;
 }
 
 __forceinline void __get_motor_fb(MotorFeedback *ptr, uint8_t *data) {
-    __from_bigendian(data, &(ptr->encoder));
-    __from_bigendian(data + 2, &(ptr->vel_rpm));
-    __from_bigendian(data + 4, &(ptr->raw_current));
-    ptr->temperature = data[6];
+	__from_bigendian(data, &(ptr->encoder));
+	__from_bigendian(data + 2, &(ptr->vel_rpm));
+	__from_bigendian(data + 4, &(ptr->raw_current));
+	ptr->temperature = data[6];
 }
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-    CAN_RxHeaderTypeDef rx_header;
-    uint8_t rx_data[8];
-    HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, rx_data);
-    uint8_t base_id = rx_header.StdId - CAN_3508_M1_ID;
-    if (hcan == &hcan2) {
-        base_id += 8;
-    }
-    MotorFeedback fb;
-    __get_motor_fb(&fb, rx_data);
-    rm_fb_cmd[base_id].encoder = fb.encoder;
-    rm_fb_cmd[base_id].vel_rpm = fb.vel_rpm;
-    rm_fb_cmd[base_id].actual_current = (float)fb.raw_current * 20.0f / 16384.0f;
-    rm_fb_cmd[base_id].temperature = fb.temperature;
+	CAN_RxHeaderTypeDef rx_header;
+	uint8_t rx_data[8];
+	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, rx_data) != HAL_OK) {
+		return;
+	}
+
+	uint8_t base_id = rx_header.StdId - CAN_3508_M1_ID;
+
+	MotorFeedback fb;
+	__get_motor_fb(&fb, rx_data);
+	rm_fb_cmd[base_id].encoder = fb.encoder;
+	rm_fb_cmd[base_id].vel_rpm = fb.vel_rpm;
+	rm_fb_cmd[base_id].actual_current = (float)fb.raw_current * 20.0f / 16384.0f;
+	rm_fb_cmd[base_id].temperature = fb.temperature;
+}
+
+void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
+	CAN_RxHeaderTypeDef rx_header;
+	uint8_t rx_data[8];
+	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &rx_header, rx_data) != HAL_OK) {
+		return;
+	}
+
+	uint8_t base_id = rx_header.StdId - CAN_3508_M1_ID + 8;
+
+	MotorFeedback fb;
+	__get_motor_fb(&fb, rx_data);
+	rm_fb_cmd[base_id].encoder = fb.encoder;
+	rm_fb_cmd[base_id].vel_rpm = fb.vel_rpm;
+	rm_fb_cmd[base_id].actual_current = (float)fb.raw_current * 20.0f / 16384.0f;
+	rm_fb_cmd[base_id].temperature = fb.temperature;
 }
 
 void can_transmit(CAN_HandleTypeDef *hcan, uint16_t id, int16_t msg1, int16_t msg2, int16_t msg3, int16_t msg4) {
-    CAN_TxHeaderTypeDef tx_header;
-    uint8_t data[8];
-    uint32_t pTxMailbox;
+	CAN_TxHeaderTypeDef tx_header;
+	uint8_t data[8];
+	uint32_t pTxMailbox;
 
-    tx_header.StdId = id;
-    tx_header.IDE = CAN_ID_STD;
-    tx_header.RTR = CAN_RTR_DATA;
-    tx_header.DLC = CAN_DATA_SIZE;
-    tx_header.TransmitGlobalTime = DISABLE;
-    data[0] = msg1 >> 8;
-    data[1] = msg1;
-    data[2] = msg2 >> 8;
-    data[3] = msg2;
-    data[4] = msg3 >> 8;
-    data[5] = msg3;
-    data[6] = msg4 >> 8;
-    data[7] = msg4;
+	tx_header.StdId = id;
+	tx_header.IDE = CAN_ID_STD;
+	tx_header.RTR = CAN_RTR_DATA;
+	tx_header.DLC = CAN_DATA_SIZE;
+	tx_header.TransmitGlobalTime = DISABLE;
+	data[0] = msg1 >> 8;
+	data[1] = msg1;
+	data[2] = msg2 >> 8;
+	data[3] = msg2;
+	data[4] = msg3 >> 8;
+	data[5] = msg3;
+	data[6] = msg4 >> 8;
+	data[7] = msg4;
 
-    if (HAL_CAN_AddTxMessage(hcan, &tx_header, data, &pTxMailbox) == HAL_OK) {
-        while (HAL_CAN_IsTxMessagePending(hcan, pTxMailbox))
-            ;
-    }
+	static bool canbus_failed = 0;
+	static uint32_t canbus_failed_ticks = 0;
+
+	if (HAL_CAN_GetTxMailboxesFreeLevel(hcan) > 0
+		&& HAL_CAN_AddTxMessage(hcan, &tx_header, data, &pTxMailbox) == HAL_OK) {
+		while (HAL_CAN_IsTxMessagePending(hcan, pTxMailbox)) {
+			canbus_failed = 0;
+			static uint32_t timer = 0;
+			if (HAL_GetTick() - timer > 100) {
+				timer = HAL_GetTick();
+				break;
+			}
+		}
+	} else if (!canbus_failed) {
+		canbus_failed = 1;
+		canbus_failed_ticks = HAL_GetTick();
+	} else if (canbus_failed && HAL_GetTick() - canbus_failed_ticks > 100) {
+		canbus_failed = 0;
+		can_stop();
+		can_init();
+	}
 }
 
 void can_ctrl_loop() {
-    /* ======= TX ======= */
-    // CAN1
-    can_transmit(&hcan1, RM_TX_GRP1_ID, rm_ctrl_cmd[CAN1_MOTOR0], rm_ctrl_cmd[CAN1_MOTOR1], rm_ctrl_cmd[CAN1_MOTOR2],
-                 rm_ctrl_cmd[CAN1_MOTOR3]);
-    can_transmit(&hcan1, RM_TX_GRP2_ID, rm_ctrl_cmd[CAN1_MOTOR4], rm_ctrl_cmd[CAN1_MOTOR5], rm_ctrl_cmd[CAN1_MOTOR6],
-                 rm_ctrl_cmd[CAN1_MOTOR7]);
+	/* ======= TX ======= */
+	// CAN1
+	can_transmit(&hcan1, RM_TX_GRP1_ID, rm_ctrl_cmd[CAN1_MOTOR0], rm_ctrl_cmd[CAN1_MOTOR1], rm_ctrl_cmd[CAN1_MOTOR2],
+				 rm_ctrl_cmd[CAN1_MOTOR3]);
+	can_transmit(&hcan1, RM_TX_GRP2_ID, rm_ctrl_cmd[CAN1_MOTOR4], rm_ctrl_cmd[CAN1_MOTOR5], rm_ctrl_cmd[CAN1_MOTOR6],
+				 rm_ctrl_cmd[CAN1_MOTOR7]);
 
-    // CAN2
-    can_transmit(&hcan2, RM_TX_GRP1_ID, rm_ctrl_cmd[CAN2_MOTOR0], rm_ctrl_cmd[CAN2_MOTOR1], rm_ctrl_cmd[CAN2_MOTOR2],
-                 rm_ctrl_cmd[CAN2_MOTOR3]);
-    can_transmit(&hcan2, RM_TX_GRP2_ID, rm_ctrl_cmd[CAN2_MOTOR4], rm_ctrl_cmd[CAN2_MOTOR5], rm_ctrl_cmd[CAN2_MOTOR6],
-                 rm_ctrl_cmd[CAN2_MOTOR7]);
+	// CAN2
+	can_transmit(&hcan2, RM_TX_GRP1_ID, rm_ctrl_cmd[CAN2_MOTOR0], rm_ctrl_cmd[CAN2_MOTOR1], rm_ctrl_cmd[CAN2_MOTOR2],
+				 rm_ctrl_cmd[CAN2_MOTOR3]);
+	can_transmit(&hcan2, RM_TX_GRP2_ID, rm_ctrl_cmd[CAN2_MOTOR4], rm_ctrl_cmd[CAN2_MOTOR5], rm_ctrl_cmd[CAN2_MOTOR6],
+				 rm_ctrl_cmd[CAN2_MOTOR7]);
 
-    /* ======= RX ======= */
-    HAL_CAN_RxFifo0MsgPendingCallback(&hcan1);
-    HAL_CAN_RxFifo0MsgPendingCallback(&hcan2);
+	/* ======= RX ======= */
+	HAL_CAN_RxFifo0MsgPendingCallback(&hcan1);
+	HAL_CAN_RxFifo1MsgPendingCallback(&hcan2);
 }
 
 /* USER FUNCTIONS */
@@ -336,13 +391,14 @@ void can_ctrl_loop() {
 MotorStats get_motor_feedback(Motor tar_motor) { return rm_fb_cmd[tar_motor]; }
 
 void set_motor_current(Motor tar_motor, int32_t tar_current) {
-    if (tar_current > 16384) {
-        tar_current = 16384;
-    } else if (tar_current < -16384) {
-        tar_current = -16384;
-    }
-    rm_ctrl_cmd[tar_motor] = tar_current;
+	if (tar_current > 16384) {
+		tar_current = 16384;
+	} else if (tar_current < -16384) {
+		tar_current = -16384;
+	}
+	rm_ctrl_cmd[tar_motor] = tar_current;
 }
+/* USER CODE END 1 */
 
 void set_motor_speed(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error) {
     // rpm to vel_rpm
@@ -358,9 +414,44 @@ void set_motor_speed(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki
     int32_t derivative = Kd * (error - (*last_error));
     *last_error = error;
 
+
     int32_t pid_value = proportional + integral + derivative;
 
     set_motor_current(tar_motor, pid_value);
+}
+void set_motor_angle(Motor tar_motor, int16_t target_angle, int32_t Kp_a, int32_t Ki_a, int32_t Kd_a, int16_t turn, double *last_error_angle,int16_t *last_error){
+
+	if (turn < (int)(floor ((target_angle/(187.0/3591.0*360.0))))){
+		set_motor_speed(tar_motor, 15, 9, 0, 50, last_error);
+	}else if (turn > (int)(floor ((target_angle/(187.0/3591.0*360.0))))){
+		set_motor_speed(tar_motor, -5 , 9, 0, 50, last_error);
+	}else if (turn == (int)(floor ((target_angle/(187.0/3591.0*360.0))))){
+//		test_pid(tar_motor,0,9,0,50,last_error);
+		int16_t error_angle = ((int)((target_angle/(187.0/3591.0*360.0))-turn)*8191.0) - get_motor_feedback(tar_motor).encoder;
+
+		int32_t proportional = Kp_a * error_angle;
+
+		int32_t integral = Ki_a * error_angle;
+
+		int32_t derivative = Kd_a * (error_angle - (*last_error_angle));
+		*last_error_angle = error_angle;
+
+		int32_t pid_value = proportional + integral + derivative;
+		tft_prints(0,2,"%d",get_motor_feedback(tar_motor).actual_current);
+		set_motor_current(tar_motor, pid_value);
+	}
+}
+
+double get_read_motor_angle(Motor tar_motor, int16_t turn){
+	return turn*19 + get_motor_feedback(tar_motor).encoder/8191.0*360.0;
+}
+void check_turn(Motor tar_motor, int16_t *turn,int16_t *last_angle){
+	if ((get_motor_feedback(tar_motor).encoder- *last_angle)<=-5000){
+		*turn+=1;
+	}else if ((get_motor_feedback(tar_motor).encoder- *last_angle)>=5000){
+		*turn-=1;
+	}
+	*last_angle=get_motor_feedback(tar_motor).encoder;
 }
 
 void test_pid(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error) {
