@@ -9,6 +9,7 @@ import serial
 com = 'COM7'
 track = 5
 
+
 # Define the color boundaries in HSV
 lower_red_0 = np.array([0,120,120])
 higher_red_0 = np.array([13, 255, 255])   
@@ -229,8 +230,8 @@ if __name__ == '__main__':
             box_array += str(c)
         box_array = box_array[::-1]
         print(f'Final Data: {box_array}')
-        ser = serial.Serial(com, 38400)
-
+        ser = serial.Serial(port=com, baudrate=38400, bytesize=8, parity="N", stopbits=1, timeout=10)
+        print(f'Writing to {com}...')
         ser.write(box_array.encode())
 
         ser.close()
