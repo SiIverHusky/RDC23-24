@@ -1,3 +1,13 @@
-../Core/Src/main.c:225:6:SystemClock_Config	88	static,ignoring_inline_asm
-../Core/Src/main.c:77:5:main	72	static
-../Core/Src/main.c:271:6:Error_Handler	0	static,ignoring_inline_asm
+../Core/Src/main.c:87:6:right_wheel	16	static
+../Core/Src/main.c:91:6:left_wheel	16	static
+../Core/Src/main.c:94:5:begin	16	static
+../Core/Src/main.c:132:5:leftTouch	16	static
+../Core/Src/main.c:153:5:pushAhead	16	static
+../Core/Src/main.c:173:5:pushAhead2	16	static
+../Core/Src/main.c:193:6:release	8	static
+../Core/Src/main.c:207:5:FirstPart	8	static
+../Core/Src/main.c:246:6:box1	16	static
+../Core/Src/main.c:260:6:location	0	static
+../Core/Src/main.c:500:6:SystemClock_Config	88	static,ignoring_inline_asm
+../Core/Src/main.c:275:5:main	16	static
+../Core/Src/main.c:549:6:Error_Handler	0	static,ignoring_inline_asm

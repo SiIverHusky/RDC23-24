@@ -1,0 +1,4 @@
+../Core/Src/tutorial3_pwm.c:44:20:btn_state	8	static
+../Core/Src/tutorial3_pwm.c:57:6:pwm_init	8	static
+../Core/Src/tutorial3_pwm.c:68:6:pwm_classwork	8	static
+../Core/Src/tutorial3_pwm.c:110:6:pwm_homework	48	static

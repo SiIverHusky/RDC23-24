@@ -60,8 +60,8 @@ all: main-build
 main-build: sw-tutorial.elf secondary-outputs
 
 # Tool invocations
-sw-tutorial.elf sw-tutorial.map: $(OBJS) $(USER_OBJS) D:\HKUST\23-24\ 1\ Fall\Robotics\ Team\sw-tutorial\STM32F405RGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "sw-tutorial.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"D:\HKUST\23-24 1 Fall\Robotics Team\sw-tutorial\STM32F405RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="sw-tutorial.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+sw-tutorial.elf sw-tutorial.map: $(OBJS) $(USER_OBJS) /Users/harsh/Desktop/Robotics/RDC23-24-main/AR/sw-tutorial/STM32F405RGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "sw-tutorial.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/harsh/Desktop/Robotics/RDC23-24-main/AR/sw-tutorial/STM32F405RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="sw-tutorial.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
