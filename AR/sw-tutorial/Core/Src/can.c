@@ -22,6 +22,10 @@
 
 /* USER CODE BEGIN 0 */
 
+#include "lcd/lcd.h"
+
+#include <stdbool.h>
+
 int16_t rm_ctrl_cmd[MAX_CAN_RM * NUM_OF_CAN] = {0};
 MotorStats rm_fb_cmd[MAX_CAN_RM * NUM_OF_CAN] = {0};
 
@@ -244,25 +248,44 @@ void can_filter_disable(CAN_HandleTypeDef *hcan) {
 }
 
 void can_init() {
-    CAN_FilterTypeDef CAN_FilterConfigStructure;
+    CAN_FilterTypeDef CAN1_FilterConfigStructure;
 
-    CAN_FilterConfigStructure.FilterIdHigh = 0x0000;
-    CAN_FilterConfigStructure.FilterIdLow = 0x0000;
-    CAN_FilterConfigStructure.FilterMaskIdHigh = 0x0000;
-    CAN_FilterConfigStructure.FilterMaskIdLow = 0x0000;
-    CAN_FilterConfigStructure.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-    CAN_FilterConfigStructure.FilterMode = CAN_FILTERMODE_IDMASK;
-    CAN_FilterConfigStructure.FilterScale = CAN_FILTERSCALE_32BIT;
-    CAN_FilterConfigStructure.FilterActivation = ENABLE;
-    CAN_FilterConfigStructure.FilterBank = 0;
+    CAN1_FilterConfigStructure.FilterIdHigh = 0x0000;
+    CAN1_FilterConfigStructure.FilterIdLow = 0x0000;
+    CAN1_FilterConfigStructure.FilterMaskIdHigh = 0x0000;
+    CAN1_FilterConfigStructure.FilterMaskIdLow = 0x0000;
+    CAN1_FilterConfigStructure.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+    CAN1_FilterConfigStructure.FilterMode = CAN_FILTERMODE_IDMASK;
+    CAN1_FilterConfigStructure.FilterScale = CAN_FILTERSCALE_32BIT;
+    CAN1_FilterConfigStructure.FilterActivation = ENABLE;
+    CAN1_FilterConfigStructure.FilterBank = 0;
+    CAN1_FilterConfigStructure.SlaveStartFilterBank = 14;
 
-    HAL_CAN_ConfigFilter(&hcan1, &CAN_FilterConfigStructure);
+    HAL_CAN_ConfigFilter(&hcan1, &CAN1_FilterConfigStructure);
     HAL_CAN_Start(&hcan1);
     HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
 
-    HAL_CAN_ConfigFilter(&hcan2, &CAN_FilterConfigStructure);
+    CAN_FilterTypeDef CAN2_FilterConfigStructure;
+
+    CAN2_FilterConfigStructure.FilterIdHigh = 0x0000;
+    CAN2_FilterConfigStructure.FilterIdLow = 0x0000;
+    CAN2_FilterConfigStructure.FilterMaskIdHigh = 0x0000;
+    CAN2_FilterConfigStructure.FilterMaskIdLow = 0x0000;
+    CAN2_FilterConfigStructure.FilterFIFOAssignment = CAN_FILTER_FIFO1;
+    CAN2_FilterConfigStructure.FilterMode = CAN_FILTERMODE_IDMASK;
+    CAN2_FilterConfigStructure.FilterScale = CAN_FILTERSCALE_32BIT;
+    CAN2_FilterConfigStructure.FilterActivation = ENABLE;
+    CAN2_FilterConfigStructure.FilterBank = 14;
+    CAN2_FilterConfigStructure.SlaveStartFilterBank = 14;
+
+    HAL_CAN_ConfigFilter(&hcan2, &CAN2_FilterConfigStructure);
     HAL_CAN_Start(&hcan2);
-    HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);
+    HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO1_MSG_PENDING);
+}
+
+void can_stop() {
+    HAL_CAN_Stop(&hcan1);
+    HAL_CAN_Stop(&hcan2);
 }
 
 #define GET_MOTOR_FEEDBACK(ptr, data)                                   \
@@ -289,11 +312,29 @@ __forceinline void __get_motor_fb(MotorFeedback *ptr, uint8_t *data) {
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     CAN_RxHeaderTypeDef rx_header;
     uint8_t rx_data[8];
-    HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, rx_data);
-    uint8_t base_id = rx_header.StdId - CAN_3508_M1_ID;
-    if (hcan == &hcan2) {
-        base_id += 8;
+    if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, rx_data) != HAL_OK) {
+        return;
     }
+
+    uint8_t base_id = rx_header.StdId - CAN_3508_M1_ID;
+
+    MotorFeedback fb;
+    __get_motor_fb(&fb, rx_data);
+    rm_fb_cmd[base_id].encoder = fb.encoder;
+    rm_fb_cmd[base_id].vel_rpm = fb.vel_rpm;
+    rm_fb_cmd[base_id].actual_current = (float)fb.raw_current * 20.0f / 16384.0f;
+    rm_fb_cmd[base_id].temperature = fb.temperature;
+}
+
+void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
+    CAN_RxHeaderTypeDef rx_header;
+    uint8_t rx_data[8];
+    if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &rx_header, rx_data) != HAL_OK) {
+        return;
+    }
+
+    uint8_t base_id = rx_header.StdId - CAN_3508_M1_ID + 8;
+
     MotorFeedback fb;
     __get_motor_fb(&fb, rx_data);
     rm_fb_cmd[base_id].encoder = fb.encoder;
@@ -321,9 +362,26 @@ void can_transmit(CAN_HandleTypeDef *hcan, uint16_t id, int16_t msg1, int16_t ms
     data[6] = msg4 >> 8;
     data[7] = msg4;
 
-    if (HAL_CAN_AddTxMessage(hcan, &tx_header, data, &pTxMailbox) == HAL_OK) {
-        while (HAL_CAN_IsTxMessagePending(hcan, pTxMailbox))
-            ;
+    static bool canbus_failed = 0;
+    static uint32_t canbus_failed_ticks = 0;
+
+    if (HAL_CAN_GetTxMailboxesFreeLevel(hcan) > 0
+        && HAL_CAN_AddTxMessage(hcan, &tx_header, data, &pTxMailbox) == HAL_OK) {
+        while (HAL_CAN_IsTxMessagePending(hcan, pTxMailbox)) {
+            canbus_failed = 0;
+            static uint32_t timer = 0;
+            if (HAL_GetTick() - timer > 100) {
+                timer = HAL_GetTick();
+                break;
+            }
+        }
+    } else if (!canbus_failed) {
+        canbus_failed = 1;
+        canbus_failed_ticks = HAL_GetTick();
+    } else if (canbus_failed && HAL_GetTick() - canbus_failed_ticks > 100) {
+        canbus_failed = 0;
+        can_stop();
+        can_init();
     }
 }
 
@@ -343,7 +401,7 @@ void can_ctrl_loop() {
 
     /* ======= RX ======= */
     HAL_CAN_RxFifo0MsgPendingCallback(&hcan1);
-    HAL_CAN_RxFifo0MsgPendingCallback(&hcan2);
+    HAL_CAN_RxFifo1MsgPendingCallback(&hcan2);
 }
 
 /* USER FUNCTIONS */
@@ -359,12 +417,12 @@ void set_motor_current(Motor tar_motor, int32_t tar_current) {
     rm_ctrl_cmd[tar_motor] = tar_current;
 }
 
-void set_motor_speed(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error) {
+void set_motor_speed(Motor tar_motor, int16_t tar_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error) {
     // rpm to vel_rpm
-    // this number makes it so the target_rpm is roughly equal to the vel_rpm value of the motor
-    target_rpm *= 20;
+    // this number makes it so the tar_rpm is roughly equal to the vel_rpm value of the motor
+    tar_rpm *= 20;
 
-    int16_t error = target_rpm - get_motor_feedback(tar_motor).vel_rpm;
+    int16_t error = tar_rpm - get_motor_feedback(tar_motor).vel_rpm;
 
     int32_t proportional = Kp * error;
 
@@ -378,16 +436,23 @@ void set_motor_speed(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki
     set_motor_current(tar_motor, pid_value);
 }
 
-void test_pid(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error) {
-    int16_t error = target_rpm * 20 - get_motor_feedback(tar_motor).vel_rpm;
-    int32_t pid_value = Kp * error + Ki * error + Kd * (error-*last_error);
+void test_pid(Motor tar_motor, int16_t tar_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error) {
+    int16_t error = tar_rpm * 20 - get_motor_feedback(tar_motor).vel_rpm;
 
-    tft_prints(0, 0, "TARGET RPM: %d", target_rpm);
-    tft_prints(0, 1, "MOTOR RPM: %0.3f", get_motor_feedback(tar_motor).vel_rpm / 20.0);
-    tft_prints(0, 2, "MOTOR VEL: %d", get_motor_feedback(tar_motor).vel_rpm);
-    tft_prints(0, 3, "RPM DIFF: %0.3f", target_rpm - get_motor_feedback(tar_motor).vel_rpm / 20.0);
-    tft_prints(0, 4, "PID VALUE: %d", pid_value);
+    int32_t proportional = Kp * error;
 
-    set_motor_speed(tar_motor, target_rpm, Kp, Ki, Kd, last_error);
+    int32_t integral = Ki * error;
+
+    int32_t derivative = Kd * (error - (*last_error));
+
+    int32_t pid_value = proportional + integral + derivative;
+
+    tft_prints(0, 0, "TAR_RPM: %d", tar_rpm);
+    tft_prints(0, 1, "MOTOR_RPM: %0.3f", get_motor_feedback(tar_motor).vel_rpm / 20.0);
+    tft_prints(0, 2, "MOTOR_VEL: %d", get_motor_feedback(tar_motor).vel_rpm);
+    tft_prints(0, 3, "RPM_DIFF: %0.3f", tar_rpm - get_motor_feedback(tar_motor).vel_rpm / 20.0);
+    tft_prints(0, 4, "PID_VALUE: %d", pid_value);
+
+    set_motor_speed(tar_motor, tar_rpm, Kp, Ki, Kd, last_error);
 }
 /* USER CODE END 1 */
