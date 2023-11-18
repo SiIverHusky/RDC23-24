@@ -6,7 +6,7 @@ import time
 import serial
 
 # Constants
-com = 'COM7'
+com = 'COM8'
 track = 5
 
 
@@ -208,8 +208,22 @@ if __name__ == '__main__':
             box_array += str(c)
         box_array = box_array[::-1]
         print(f'Final Data: {box_array}')
-        ser = serial.Serial(port=com, baudrate=38400, bytesize=8, parity="N", stopbits=1, timeout=10)
-        print(f'Writing to {com}...')
-        ser.write(box_array.encode())
+        check_array = [i for i, char in enumerate(box_array) if char == '1']
+        check = int(check_array[0]) + 1
+        check2 = int(check_array[1]) + 1
+        checkStr = str(check) + str(check2)
+        print(f'Sending {checkStr} to {com}...')
 
-        ser.close()
+        attempts = 10  # Number of attempts to connect and write to the port
+        for attempt in range(1, attempts + 1):
+            try:
+                ser = serial.Serial(port=com, baudrate=38400, bytesize=8, parity="N", stopbits=1, timeout=1)
+                print(f'Writing to {com}...')
+                ser.write(checkStr)
+                ser.close()
+                print(f'Successfully wrote to {com}')
+                break  # Exit the loop if successful
+            except serial.SerialException:
+                print(f'Attempt {attempt} failed to connect and write to {com}')
+                if attempt == attempts:
+                    print(f'All attempts failed. Unable to connect and write to {com}')
