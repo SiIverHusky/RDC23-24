@@ -6,8 +6,10 @@ import time
 import serial
 
 # Constants
-com = 'COM8'
-track = 5
+com = 'COM4'        # Bluetooth Port
+
+timeBetween = 5
+track = 10//timeBetween           
 
 
 # Define the color boundaries in HSV
@@ -23,8 +25,8 @@ higher_blue = np.array([130, 255, 255])
 lower_green = np.array([25,20,20])
 higher_green = np.array([75, 255, 255])
 
-# Flag
-img_flag = True
+# Flag - Do not Touch for RDC
+test_flag = True
 
 # Capture Sources
 cam = cv2.VideoCapture(1)
@@ -35,7 +37,6 @@ dft = cv2.imread("usb3.jpg")
 img = dft
 
 # Time Trackers
-last_time = time.time()
 process_time = time.time()
 
 # Functions
@@ -116,7 +117,7 @@ if __name__ == '__main__':
     boxes = []
     datBT = []
     tracker = 0
-    if img_flag:
+    if test_flag:
         detected = img
     else:
         _, detected = cam.read()
@@ -124,7 +125,7 @@ if __name__ == '__main__':
         if tracker >= track:
             break
 
-        if img_flag:
+        if test_flag:
             frame = img
             ret = True
         else:
@@ -133,31 +134,32 @@ if __name__ == '__main__':
         if not ret:
             break
 
-        if time.time() - process_time >= 2:                         # Only process every 2 seconds
+        if time.time() - process_time >= timeBetween:                       # Only process after timeBetween
             process_frame = frame
 
-            process_frame = cv2.GaussianBlur(process_frame, (5, 5), 0)  # Remove noise w/ Gaussian
-            process_frame = cv2.medianBlur(process_frame, 9)            # Remove noise w/ Median
+            process_frame = cv2.GaussianBlur(process_frame, (5, 5), 0)      # Remove noise w/ Gaussian
+            process_frame = cv2.medianBlur(process_frame, 9)                # Remove noise w/ Median
 
-            hsv = cv2.cvtColor(process_frame, cv2.COLOR_BGR2HSV)        # Convert to HSV
+            hsv = cv2.cvtColor(process_frame, cv2.COLOR_BGR2HSV)            # Convert to HSV
 
-            lmask = cv2.inRange(hsv, lower_red_0, higher_red_0)
-            umask = cv2.inRange(hsv, lower_red_180, higher_red_180)
-            cmask = cv2.bitwise_or(lmask, umask)
-            bmask = cv2.inRange(hsv, lower_blue, higher_blue)
-            cmask = cv2.bitwise_or(cmask, bmask)
+            # Creating masks to detect boxes
+            lmask = cv2.inRange(hsv, lower_red_0, higher_red_0)             # Create mask for lower red
+            umask = cv2.inRange(hsv, lower_red_180, higher_red_180)         # Create mask for upper red
+            cmask = cv2.bitwise_or(lmask, umask)                            # Combine red masks
+            bmask = cv2.inRange(hsv, lower_blue, higher_blue)               # Create mask for blue
+            cmask = cv2.bitwise_or(cmask, bmask)                            # Combine blue and red masks
 
-            gmask = cv2.inRange(hsv, lower_green, higher_green)
-            mask = cv2.bitwise_or(cmask, gmask)
-            kernel = np.ones((5,5), np.uint8)
-            mask = cv2.erode(mask, kernel, iterations=2)
+            gmask = cv2.inRange(hsv, lower_green, higher_green)             # Create mask for green
+            mask = cv2.bitwise_or(cmask, gmask)                             # Combine green and red/blue masks
+            kernel = np.ones((5,5), np.uint8)                   
+            mask = cv2.erode(mask, kernel, iterations=2)                    # Erode mask
 
-            detected = cv2.bitwise_and(process_frame, process_frame, mask=mask)
-            gframe = cv2.bitwise_and(process_frame, process_frame, mask=gmask)
+            detected = cv2.bitwise_and(process_frame, process_frame, mask=mask)     # Apply mask to frame
+            gframe = cv2.bitwise_and(process_frame, process_frame, mask=gmask)      # Apply green mask to frame
 
-            template = searchGreen(gframe)
-            boxes = searchBoxes(mask, template)
-            boxes = classifyBoxes(boxes, cmask, gmask)
+            template = searchGreen(gframe)                                  # Search for green template
+            boxes = searchBoxes(mask, template)                             # Search for boxes
+            boxes = classifyBoxes(boxes, cmask, gmask)                      # Classify boxes
 
             if len(boxes) != 0:
                 if tracker == 0:
@@ -177,16 +179,16 @@ if __name__ == '__main__':
             process_time = time.time()
         
         if len(boxes) > 0:
-            mask = destroyNonBoxes(mask, boxes)
+            # mask = destroyNonBoxes(mask, boxes)
             detected = cv2.bitwise_and(process_frame, process_frame, mask=mask)
             for box in boxes:
                 x, y, w, h, c = box
                 if c == 0:
                     cv2.rectangle(detected, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                    cv2.putText(detected, "0", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                    cv2.putText(detected, "0", (x + w//2 - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                 else:
                     cv2.rectangle(detected, (x, y), (x+w, y+h), (255, 0, 255), 2)
-                    cv2.putText(detected, "1", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 255), 2)
+                    cv2.putText(detected, "1", (x + w//2 - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 255), 2)
         
 
         cv2.imshow('CAM', frame)
@@ -198,7 +200,6 @@ if __name__ == '__main__':
 
 
     cam.release()
-    cv2.destroyAllWindows()
 
     if (len(boxes) != 0):
         box_array = ''
@@ -217,9 +218,9 @@ if __name__ == '__main__':
         attempts = 10  # Number of attempts to connect and write to the port
         for attempt in range(1, attempts + 1):
             try:
-                ser = serial.Serial(port=com, baudrate=38400, bytesize=8, parity="N", stopbits=1, timeout=1)
+                ser = serial.Serial(port=com, baudrate=115200, bytesize=8, parity="N", stopbits=1, timeout=1)
                 print(f'Writing to {com}...')
-                ser.write(checkStr)
+                ser.write(checkStr.encode())
                 ser.close()
                 print(f'Successfully wrote to {com}')
                 break  # Exit the loop if successful
@@ -227,3 +228,6 @@ if __name__ == '__main__':
                 print(f'Attempt {attempt} failed to connect and write to {com}')
                 if attempt == attempts:
                     print(f'All attempts failed. Unable to connect and write to {com}')
+                else:
+                    time.sleep(0.2)
+    cv2.destroyAllWindows()
