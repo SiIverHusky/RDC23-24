@@ -439,9 +439,9 @@ void set_motor_angle(Motor tar_motor, int16_t tar_angle, int32_t Kp, int32_t Ki,
     double degree_per_turn = 187.0 / 3591.0 * 360.0;
 
     if (turn < (int)(floor(tar_angle / degree_per_turn))) {
-        set_motor_speed(tar_motor, 15, 9, 0, 50, last_error);
+        set_motor_speed(tar_motor, 15, 900, 0, 5000, last_error);
     } else if (turn > (int)(floor(tar_angle / degree_per_turn))) {
-        set_motor_speed(tar_motor, -5, 9, 0, 50, last_error);
+        set_motor_speed(tar_motor, -5, 900, 0, 5000, last_error);
     } else if (turn == (int)(floor(tar_angle / degree_per_turn))) {
         int16_t error = (int)(((tar_angle / degree_per_turn) - turn) * 8191.0) - get_motor_feedback(tar_motor).encoder;
 
@@ -456,7 +456,6 @@ void set_motor_angle(Motor tar_motor, int16_t tar_angle, int32_t Kp, int32_t Ki,
         set_motor_current(tar_motor, pid_value);
     }
 }
-
 
 void test_pid(Motor tar_motor, int16_t tar_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error) {
     int16_t error = tar_rpm * 20 - get_motor_feedback(tar_motor).vel_rpm;
