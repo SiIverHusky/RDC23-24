@@ -8,8 +8,8 @@ const int16_t Kp = 9;
 const int16_t Ki = 0;
 const int16_t Kd = 50;
 
-void move(Motor frontL_motor, Motor frontR_motor, Motor back_motor, int16_t x, int16_t y, int16_t direction, int16_t speed,
-          int16_t *last_error_frontL, int16_t *last_error_frontR, int16_t *last_error_back) {
+void move(Motor frontL_motor, Motor frontR_motor, Motor back_motor, int16_t x, int16_t y, int16_t direction,
+          int16_t speed, int16_t *last_error_frontL, int16_t *last_error_frontR, int16_t *last_error_back) {
     double frontL_rpm = (x / 100.0) * 0.5 + (y / 100.0) * sqrt(3) / 2.0 + (direction / 100.0);
     double frontR_rpm = (x / 100.0) * 0.5 - (y / 100.0) * sqrt(3) / 2.0 + (direction / 100.0);
     double back_rpm = -(x / 100.0) + (direction / 100.0);
