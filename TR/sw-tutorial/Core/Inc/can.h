@@ -121,6 +121,11 @@ void set_motor_current(Motor tar_motor, int32_t tar_current);
 
 void set_motor_speed(Motor tar_motor, int16_t tar_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error);
 
+void check_turn(Motor tar_motor, int16_t *turn, int16_t *last_angle);
+
+void set_motor_angle(Motor tar_motor, int16_t tar_angle, int32_t Kp, int32_t Ki, int32_t Kd, int16_t turn,
+                     double *last_error_angle, int16_t *last_error);
+
 void test_pid(Motor tar_motor, int16_t target_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error);
 
 /* USER CODE END Prototypes */

@@ -24,7 +24,6 @@
 #include "gpio.h"
 #include "i2c.h"
 #include "spi.h"
-#include "stdbool.h"
 #include "tim.h"
 #include "usart.h"
 
@@ -241,7 +240,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
                     if (i + 1 <= 21) {
                         storer[0] = rx_buff[i + 1];
                         storer[1] = '\0';
-                        if (atoi(storer) >= 0 && atoi(storer) <= 6) {
+                        if (atoi(storer) >= 0 && atoi(storer) <= 8) {
                             b = atoi(storer);
                         }
                     } else {
@@ -252,7 +251,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
                     if (i - 1 >= 0) {
                         storer[0] = rx_buff[i - 1];
                         storer[1] = '\0';
-                        if (atoi(storer) >= 0 && atoi(storer) <= 6) {
+                        if (atoi(storer) >= 0 && atoi(storer) <= 8) {
                             b = atoi(storer);
                         }
                     } else {
@@ -307,6 +306,7 @@ int main(void) {
     led_off(LED4);
     tft_init(PIN_ON_TOP, BLACK, WHITE, YELLOW, DARK_GREEN);
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET);
+    gpio_reset(CYLINDER);
     can_init();
 
     /* USER CODE END 2 */
@@ -316,10 +316,10 @@ int main(void) {
     tft_force_clear();
 
     // test PID
-//    double arr[5000];
-//    int i = 0;
-//    char temp[16];
-//    int j = 0;
+    //    double arr[5000];
+    //    int i = 0;
+    //    char temp[16];
+    //    int j = 0;
 
     const int16_t Kp = 9;
     const int16_t Ki = 0;
@@ -335,19 +335,75 @@ int main(void) {
     // gripper CAN2_MOTOR0
 
     // control
-    bool auto_shortcut = false;
+    uint8_t gripper_mode = 0;
+    int8_t current_gripper = 0;
+    uint8_t auto_shortcut_mode = 0;
+    uint32_t start_shortcut_tick = 0;
+
+    int8_t speed_btn_pressed = 0;
+    int8_t speed_mode = 0; // slow is 0 fast is 1
+    int16a_t speed = 75;
 
     while (1) {
         can_ctrl_loop();
 
         tft_update(100);
 
+        switch (b) {
+            case 1:
+                if (gripper_mode == 0) {
+                    gripper_mode = 1;
+                    gpio_toggle(CYLINDER);
+                    current_gripper = !current_gripper;
+                }
+                break;
+            case 3:
+                if (auto_shortcut_mode == 0) {
+                    auto_shortcut_mode = 1;
+                };
+                break;
+            case 4:
+                if (speed_btn_pressed == 0) {
+                    speed_btn_pressed = 1;
+                    speed_mode = !speed_mode;
+                }
+                break;
+            case 5: r = -50; break;
+            case 6: r = 50; break;
+            case 0:
+                gripper_mode = 0;
+                speed_btn_pressed = 0;
+                break;
+            default: break;
+        }
+
+        switch (speed_mode) {
+            case 0: speed = 75; break;
+            case 1: speed = 150; break;
+            default: break;
+        }
+
         tft_prints(0, 1, "x: %d ", x);
         tft_prints(0, 2, "y: %d ", y);
         tft_prints(0, 3, "r: %d ", r);
         tft_prints(0, 4, "b: %d ", b);
+        tft_prints(0, 8, "g: %d", current_gripper);
+        tft_prints(0, 9, "speed: %d", speed);
 
-        move(CAN2_MOTOR2, CAN2_MOTOR1, CAN2_MOTOR3, x, y, r, &last_error_frontL, &last_error_frontR, &last_error_back);
+        if (auto_shortcut_mode == 1) {
+            start_shortcut_tick = HAL_GetTick();
+            auto_shortcut_mode = 2;
+        } else if (auto_shortcut_mode == 2 && HAL_GetTick() - start_shortcut_tick <= 2500) {
+            move(CAN2_MOTOR2, CAN2_MOTOR1, CAN2_MOTOR3, 0, 100, -10, 150, &last_error_frontL, &last_error_frontR,
+                 &last_error_back);
+        } else if (auto_shortcut_mode == 2 && HAL_GetTick() - start_shortcut_tick >= 2500) {
+            move(CAN2_MOTOR2, CAN2_MOTOR1, CAN2_MOTOR3, 0, 0, 0, speed, &last_error_frontL, &last_error_frontR,
+                 &last_error_back);
+            auto_shortcut_mode = 0;
+        } else {
+            move(CAN2_MOTOR2, CAN2_MOTOR1, CAN2_MOTOR3, x, y, r, speed, &last_error_frontL, &last_error_frontR,
+                 &last_error_back);
+        }
 
         // test PID
         //        if (HAL_GetTick() <= 1000) {
@@ -374,8 +430,8 @@ int main(void) {
         //        }
 
         if (HAL_GetTick() == 0 && last_ticks != 0) {
-            last_ticks = last_ticks % 250;
-        } else if (HAL_GetTick() - last_ticks >= 250) {
+            last_ticks = last_ticks % 1000;
+        } else if (HAL_GetTick() - last_ticks >= 1000) {
             led_toggle(LED1);
             last_ticks = HAL_GetTick();
         }

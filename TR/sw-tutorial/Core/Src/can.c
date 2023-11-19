@@ -404,11 +404,11 @@ void set_motor_current(Motor tar_motor, int32_t tar_current) {
 void set_motor_speed(Motor tar_motor, int16_t tar_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error) {
     // rpm to vel_rpm
     // this number makes it so the tar_rpm is roughly equal to the vel_rpm value of the motor
-	if (tar_motor == CAN2_MOTOR2) {
-		tar_rpm *= 15;
-	} else {
-		tar_rpm *= 20;
-	}
+    if (tar_motor == CAN2_MOTOR2) {
+        tar_rpm *= 15;
+    } else {
+        tar_rpm *= 20;
+    }
 
     int16_t error = tar_rpm - get_motor_feedback(tar_motor).vel_rpm;
 
@@ -423,6 +423,40 @@ void set_motor_speed(Motor tar_motor, int16_t tar_rpm, int16_t Kp, int16_t Ki, i
 
     set_motor_current(tar_motor, pid_value);
 }
+
+void check_turn(Motor tar_motor, int16_t *turn, int16_t *last_angle) {
+    if (get_motor_feedback(tar_motor).encoder - (*last_angle) <= -5000) {
+        *turn += 1;
+    } else if (get_motor_feedback(tar_motor).encoder - (*last_angle) >= 5000) {
+        *turn -= 1;
+    }
+
+    *last_angle = get_motor_feedback(tar_motor).encoder;
+}
+
+void set_motor_angle(Motor tar_motor, int16_t tar_angle, int32_t Kp, int32_t Ki, int32_t Kd, int16_t turn,
+                     double *last_error_angle, int16_t *last_error) {
+    double degree_per_turn = 187.0 / 3591.0 * 360.0;
+
+    if (turn < (int)(floor(tar_angle / degree_per_turn))) {
+        set_motor_speed(tar_motor, 15, 9, 0, 50, last_error);
+    } else if (turn > (int)(floor(tar_angle / degree_per_turn))) {
+        set_motor_speed(tar_motor, -5, 9, 0, 50, last_error);
+    } else if (turn == (int)(floor(tar_angle / degree_per_turn))) {
+        int16_t error = (int)(((tar_angle / degree_per_turn) - turn) * 8191.0) - get_motor_feedback(tar_motor).encoder;
+
+        int32_t proportional = Kp * error;
+
+        int32_t integral = Ki * error;
+
+        int32_t derivative = Kd * (error - (*last_error_angle));
+        *last_error_angle = error;
+
+        int32_t pid_value = proportional + integral + derivative;
+        set_motor_current(tar_motor, pid_value);
+    }
+}
+
 
 void test_pid(Motor tar_motor, int16_t tar_rpm, int16_t Kp, int16_t Ki, int16_t Kd, int16_t *last_error) {
     int16_t error = tar_rpm * 20 - get_motor_feedback(tar_motor).vel_rpm;
