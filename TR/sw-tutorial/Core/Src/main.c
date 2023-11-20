@@ -182,7 +182,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
                             storer[1] = '5';
                             storer[2] = '0';
                             storer[3] = '\0';
-                            y =  atoi(storer);
+                            y = atoi(storer);
                         }
                     } else {
                         y = 0;
@@ -344,15 +344,9 @@ int main(void) {
     int8_t speed_mode = 0; // slow is 0 fast is 1
     int16_t speed = 75;    // motor rpm
 
-    int8_t seesaw_btn_pressed = 0;
-    int8_t seesaw_mode = 0; // down is 0 up is 1
-    int16_t turn = 0;
-    int16_t last_angle = 0;
-    double last_error_angle = 0.0f;
-    int16_t last_error_seesaw = 0;
-    uint32_t start_seesaw_tick = 0;
-    uint8_t seesaw_times = 0;
-
+    int8_t fan_btn_pressed = 0;
+    int8_t fan_mode = 0; // stop is 0 open is 1
+    int16_t last_error_fan;
 
     while (1) {
         can_ctrl_loop();
@@ -369,11 +363,9 @@ int main(void) {
                 }
                 break;
             case 2:
-                if (seesaw_btn_pressed == 0) {
-                    seesaw_btn_pressed = 1;
-                    seesaw_mode = !seesaw_mode;
-                    start_seesaw_tick = HAL_GetTick();
-                    seesaw_times++;
+                if (fan_btn_pressed == 0) {
+                    fan_btn_pressed = 1;
+                    fan_mode = !fan_mode;
                 }
                 break;
             case 3:
@@ -392,7 +384,7 @@ int main(void) {
             case 0:
                 gripper_mode = 0;
                 speed_btn_pressed = 0;
-                seesaw_btn_pressed = 0;
+                fan_btn_pressed = 0;
                 break;
             default: break;
         }
@@ -400,46 +392,14 @@ int main(void) {
         // CHANGE SPEED
         switch (speed_mode) {
             case 0: speed = 75; break;
-            case 1: speed = 200; break;
+            case 1: speed = 150; break;
             default: break;
         }
 
-        // MOVE SEESAW
-        check_turn(CAN2_MOTOR0, &turn, &last_angle);
-        switch (seesaw_mode) {
-            case 1:
-                led_toggle(LED3);
-
-                if (HAL_GetTick() - start_seesaw_tick <= 200) {
-                    set_motor_current(CAN2_MOTOR0, 5000);
-                } else if (HAL_GetTick() - start_seesaw_tick > 200 && HAL_GetTick() - start_seesaw_tick <= 400) {
-                    set_motor_current(CAN2_MOTOR0, 8000);
-                } else if (HAL_GetTick() - start_seesaw_tick > 400 && HAL_GetTick() - start_seesaw_tick <= 600) {
-                    set_motor_current(CAN2_MOTOR0, 12500);
-                } else if (HAL_GetTick() - start_seesaw_tick > 600) {
-                    set_motor_current(CAN2_MOTOR0, 15000);
-                }
-
-                break;
-
-                //            	set_motor_angle(CAN2_MOTOR0, 150, 9, 0, 50, turn, &last_error_angle,
-                //            &last_error_seesaw); break;
-            case 0:
-                set_motor_current(CAN2_MOTOR0, 0);
-                if (seesaw_times > 0) {
-                    if (HAL_GetTick() - start_seesaw_tick <= 200) {
-                        set_motor_current(CAN2_MOTOR0, 12500);
-                    } else if (HAL_GetTick() - start_seesaw_tick > 200 && HAL_GetTick() - start_seesaw_tick <= 400) {
-                        set_motor_current(CAN2_MOTOR0, 9000);
-                    } else if (HAL_GetTick() - start_seesaw_tick > 400 && HAL_GetTick() - start_seesaw_tick <= 600) {
-                        set_motor_current(CAN2_MOTOR0, 4500);
-                    } else if (HAL_GetTick() - start_seesaw_tick > 600) {
-                        set_motor_current(CAN2_MOTOR0, 0);
-                    }
-                }
-                //                set_motor_angle(CAN2_MOTOR0, 150, 9, 0, 50, turn, &last_error_angle,
-                //                &last_error_seesaw);
-                break;
+        // FAN
+        switch (fan_mode) {
+            case 1: set_motor_speed(CAN2_MOTOR0, 500, 9, 0, 50, &last_error_fan); break;
+            case 0: set_motor_speed(CAN2_MOTOR0, 0, 9, 0, 50, &last_error_fan); break;
             default: break;
         }
 
@@ -448,7 +408,7 @@ int main(void) {
             start_shortcut_tick = HAL_GetTick();
             auto_shortcut_mode = 2;
         } else if (auto_shortcut_mode == 2 && HAL_GetTick() - start_shortcut_tick <= 3000) {
-            move(CAN2_MOTOR2, CAN2_MOTOR1, CAN2_MOTOR3, 0, 100, -25, 150, &last_error_frontL, &last_error_frontR,
+            move(CAN2_MOTOR2, CAN2_MOTOR1, CAN2_MOTOR3, -20, 100, 0, 150, &last_error_frontL, &last_error_frontR,
                  &last_error_back);
         } else if (auto_shortcut_mode == 2 && HAL_GetTick() - start_shortcut_tick >= 3000) {
             move(CAN2_MOTOR2, CAN2_MOTOR1, CAN2_MOTOR3, 0, 0, 0, speed, &last_error_frontL, &last_error_frontR,
@@ -463,7 +423,7 @@ int main(void) {
         tft_prints(0, 2, "y: %d ", y);
         tft_prints(0, 3, "r: %d ", r);
         tft_prints(0, 4, "b: %d", b);
-        tft_prints(0, 8, "g: %d s: %d", current_gripper, seesaw_mode);
+        tft_prints(0, 8, "g: %d f: %d", current_gripper, fan_mode);
         tft_prints(0, 9, "speed: %d", speed);
 
         // test PID

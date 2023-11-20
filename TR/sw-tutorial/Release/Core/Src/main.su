@@ -1,5 +1,5 @@
 ../Core/Src/main.c:65:10:stringlen	0	static
 ../Core/Src/main.c:83:6:HAL_UART_RxCpltCallback	40	static
-../Core/Src/main.c:506:6:SystemClock_Config	88	static,ignoring_inline_asm
-../Core/Src/main.c:267:5:main	96	static
-../Core/Src/main.c:551:6:Error_Handler	0	static,ignoring_inline_asm
+../Core/Src/main.c:466:6:SystemClock_Config	88	static,ignoring_inline_asm
+../Core/Src/main.c:267:5:main	88	static
+../Core/Src/main.c:511:6:Error_Handler	0	static,ignoring_inline_asm
